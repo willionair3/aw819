@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Relationship Story Game - Slowdown & Yes Sequence with Analytics</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #111; }
+    canvas { display: block; margin: auto; background: #111; }
+  </style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+
+<!-- GameAnalytics SDK -->
+<script>
+  (function(w,d,s,u){
+    w['GameAnalytics'] = w['GameAnalytics'] || function(){(w['GameAnalytics'].q = w['GameAnalytics'].q || []).push(arguments)};
+    var ga = d.createElement(s), m = d.getElementsByTagName(s)[0];
+    ga.async = 1;
+    ga.src = u;
+    m.parentNode.insertBefore(ga,m);
+  })(window,document,'script','https://download.gameanalytics.com/js/GameAnalytics.latest.min.js');
+
+  GameAnalytics("setEnabledInfoLog", true);
+  GameAnalytics("initialize", "74d3259c304d64ec6ad15574eb975019", "d9212b3ec2f73ae0648888f637774c1b8b455bcf");
+</script>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Frame URLs (3 frames each)
+  const boyIdleFrames = ['pixel_boy_idle_1.png', 'pixel_boy_idle_2.png', 'pixel_boy_idle_3.png'];
+  const boyMaskedFrames = ['pixel_boy_masked_1.png', 'pixel_boy_masked_2.png', 'pixel_boy_masked_3.png'];
+  const boyCryingFrames = ['pixel_boy_crying_1.png', 'pixel_boy_crying_2.png', 'pixel_boy_crying_3.png'];
+  const soulmateIdleFrames = ['pixel_soulmate_idle_1.png', 'pixel_soulmate_idle_2.png', 'pixel_soulmate_idle_3.png'];
+  const soulmateMaskedFrames = ['pixel_soulmate_masked_1.png', 'pixel_soulmate_masked_2.png', 'pixel_soulmate_masked_3.png'];
+
+  function preloadFrames(urls) {
+    return urls.map(url => {
+      const img = new Image();
+      img.src = url;
+      return img;
+    });
+  }
+
+  const boyIdleImgs = preloadFrames(boyIdleFrames);
+  const boyMaskedImgs = preloadFrames(boyMaskedFrames);
+  const boyCryingImgs = preloadFrames(boyCryingFrames);
+  const soulmateIdleImgs = preloadFrames(soulmateIdleFrames);
+  const soulmateMaskedImgs = preloadFrames(soulmateMaskedFrames);
+
+  const frameWidth = 40;
+  const frameHeight = 60;
+  const scale = 4;
+  const scaledWidth = frameWidth * scale;
+  const scaledHeight = frameHeight * scale;
+
+  let currentFrame = 0;
+  let frameTimer = 0;
+  let frameDuration = 24;
+
+  let boyX = 0;
+  let soulmateX = 200;
+  let moveSpeed = 2;
+
+  const GamePhase = {
+    Story: 0,
+    Choice: 1,
+    AfterChoiceYes: 2,
+    AfterChoiceNo: 3,
+    End: 4,
+  };
+
+  let currentYearIndex = 0;
+  let currentFrameIndex = 0;
+  let gamePhase = GamePhase.Story;
+
+  let playerChoice = null;
+  let slideTimer = 0;
+  let slideInterval = 180;
+
+  let slowedDown = false;
+
+  const afterChoiceYesFrames = [
+    { backgroundColor: '#f5f0e6', text: "Budapest: A new journey begins.", bgImageSrc: 'pixel_budapest.png' },
+    { backgroundColor: '#d0d7de', text: "Prague: Exploring ancient streets.", bgImageSrc: 'pixel_prague.png' },
+    { backgroundColor: '#f0e68c', text: "India: A land of colors and wonders.", bgImageSrc: 'pixel_india.png' },
+    { backgroundColor: '#f0e68c', text: "Mexico: The land of tacos.", bgImageSrc: 'pixel_mexico.png' },
+    { backgroundColor: '#add8e6', text: "Earth: Infinite adventures around the globe.", bgImageSrc: 'pixel_earth.png' }
+  ];
+
+  const storyByYear = [
+    {
+      year: 2011,
+      frames: [
+        { backgroundColor: 'lightblue', text: "The boy starts the year filled with hope.", bgImageSrc: 'pixel_sf.png' },
+        { backgroundColor: 'skyblue', text: "In August, they start dating officially.", bgImageSrc: 'pixel_hk.png' },
+        { backgroundColor: 'lightsteelblue', text: "Separated by distance, alone in San Francisco.", bgImageSrc: 'pixel_sf.png' },
+        { backgroundColor: 'skyblue', text: "Reunited at the end of the year in Hong Kong.", bgImageSrc: 'pixel_hk.png' },
+      ],
+    },
+    {
+      year: 2012,
+      frames: [
+        { backgroundColor: 'lightgreen', text: "Friends grow closer, hearts grow fonder.", bgImageSrc: 'pixel_tokyo.png' },
+        { backgroundColor: 'mediumseagreen', text: "New memories in new places.", bgImageSrc: 'pixel_osaka.png' },
+      ],
+    },
+    {
+      year: 2013,
+      frames: [
+        { backgroundColor: 'lightyellow', text: "Love deepens over time." },
+        { backgroundColor: 'khaki', text: "A special proposal moment.", bgImageSrc: 'pixel_paris.png' },
+      ],
+    },
+    {
+      year: 2014,
+      frames: [
+        { backgroundColor: 'lightcoral', text: "Preparing for a joyful future.", bgImageSrc: 'pixel_italy.png' },
+        { backgroundColor: 'salmon', text: "Sharing dreams and hopes.", bgImageSrc: 'pixel_hk.png' },
+      ],
+    },
+    {
+      year: 2015,
+      frames: [
+        { backgroundColor: 'goldenrod', text: "Wedding day surrounded by love.", bgImageSrc: 'pixel_hk.png' },
+        { backgroundColor: 'gold', text: "A honeymoon to remember.", bgImageSrc: 'pixel_berlin.png' },
+      ],
+    },
+    {
+      year: 2016,
+      frames: [
+        { backgroundColor: 'lightpink', text: "Life brings many adventures.", bgImageSrc: 'pixel_taipei.png' },
+        { backgroundColor: 'palevioletred', text: "Memories in different cities.", bgImageSrc: 'pixel_tokyo.png' },
+      ],
+    },
+    {
+      year: 2017,
+      frames: [
+        { backgroundColor: 'lightcyan', text: "Cherished moments together.", bgImageSrc: 'pixel_paris.png' },
+        { backgroundColor: 'cyan', text: "Finding comfort in Zurich.", bgImageSrc: 'pixel_zurich.png' },
+      ]
+    },
+    {
+      year: 2018,
+      frames: [
+        { backgroundColor: 'lightsteelblue', text: "Overcoming challenges with strength.", bgImageSrc: 'pixel_beijing.png' },
+        { backgroundColor: 'steelblue', text: "Creating new memories.", bgImageSrc: 'pixel_taipei.png' },
+      ],
+    },
+    {
+      year: 2019,
+      frames: [
+        { backgroundColor: 'lightsalmon', text: "Tough times in September.", bgImageSrc: 'pixel_osaka.png' },
+        { backgroundColor: 'coral', text: "Still standing strong.", bgImageSrc: 'pixel_tokyo.png' },
+      ],
+    },
+    {
+      year: 2020,
+      frames: [
+        { backgroundColor: 'lightgray', text: "A world changed, faces masked.", bgImageSrc: 'pixel_beijing.png' },
+        { backgroundColor: 'gray', text: "Staying safe together.", bgImageSrc: 'pixel_hk.png' },
+      ],
+    },
+    {
+      year: 2021,
+      frames: [
+        { backgroundColor: 'lightseagreen', text: "Hope grows anew.", bgImageSrc: 'pixel_hk.png' },
+        { backgroundColor: 'mediumturquoise', text: "Building a future.", bgImageSrc: 'pixel_hk.png' },
+      ],
+    },
+    {
+      year: 2022,
+      frames: [
+        { backgroundColor: 'lightskyblue', text: "New beginnings in a new home.", bgImageSrc: 'pixel_hk.png' },
+        { backgroundColor: 'deepskyblue', text: "Together against all odds.", bgImageSrc: 'pixel_hk.png' },
+      ],
+    },
+    {
+      year: 2023,
+      frames: [
+        { backgroundColor: 'lightgoldenrodyellow', text: "Dreams and doubts meet.", bgImageSrc: 'pixel_tokyo.png' },
+        { backgroundColor: 'goldenrod', text: "Facing crossroads.", bgImageSrc: 'pixel_seoul.png' },
+      ],
+    },
+    {
+      year: 2024,
+      frames: [
+        { backgroundColor: 'lightcoral', text: "Uncertainty looms.", bgImageSrc: 'pixel_tokyo.png' },
+        { backgroundColor: 'indianred', text: "Love tested again.", bgImageSrc: 'pixel_osaka.png' },
+      ],
+    },
+    {
+      year: 2025,
+      frames: [
+        { backgroundColor: 'darkgray', text: "Marriage stands at a crossroads.", bgImageSrc: 'pixel_tokyo.png' },
+        { backgroundColor: 'dimgray', text: "She considers leaving.", bgImageSrc: 'pixel_hk.png' },
+      ],
+    },
+  ];
+
+  const bgCache = {};
+  function getBgImg(src) {
+    if (!src) return null;
+    if (!bgCache[src]) {
+      let img = new Image();
+      img.src = src;
+      bgCache[src] = img;
+    }
+    return bgCache[src];
+  }
+
+  function isSoulmatePresent(year, frameIdx) {
+    if (year < 2011) return false;
+    if (year === 2011 && frameIdx < 1) return false;
+    return true;
+  }
+
+  function isMaskedPeriod(year) {
+    return year >= 2020 && year <= 2022;
+  }
+
+ function updateAnimation() {
+  // Only animate if NOT in Choice phase or AfterChoiceNo
+  if (gamePhase !== GamePhase.Choice && gamePhase !== GamePhase.AfterChoiceNo) {
+    frameTimer++;
+    if (frameTimer >= frameDuration) {
+      frameTimer = 0;
+      currentFrame = (currentFrame + 1) % 3;
+    }
+  }
+}
+
+  function updatePositions() {
+    boyX += moveSpeed;
+    soulmateX += moveSpeed;
+    if (boyX > canvas.width) boyX = -scaledWidth;
+    if (soulmateX > canvas.width) soulmateX = -scaledWidth;
+  }
+
+  function drawCharacter(imgArr, frame, x, y) {
+    if (!imgArr.length) return;
+    const img = imgArr[frame];
+    if (img.complete) {
+      ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+    }
+  }
+
+  function drawBackground(frame) {
+    const img = getBgImg(frame.bgImageSrc);
+    if (img && img.complete) {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    } else {
+      ctx.fillStyle = frame.backgroundColor || '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  function renderStoryFrame() {
+  const currentYear = storyByYear[currentYearIndex];
+  const frame = currentYear.frames[currentFrameIndex];
+
+  drawBackground(frame);
+
+  ctx.fillStyle = '#39ff14';
+  ctx.font = '26px monospace';
+  ctx.shadowColor = '#39ff14';
+  ctx.shadowBlur = 12;
+  ctx.fillText(frame.text, 20, 70);
+  ctx.fillText(`Year: ${currentYear.year}`, canvas.width - 180, 70);
+  ctx.shadowBlur = 0;
+
+  updatePositions();
+
+  const soulmatePresent = isSoulmatePresent(currentYear.year, currentFrameIndex);
+  const masked = isMaskedPeriod(currentYear.year);
+
+  // For Choice phase, boy alone and not animating (currentFrame locked)
+  if (gamePhase === GamePhase.Choice) {
+    if (masked) {
+      drawCharacter(boyMaskedImgs, 0, boyX, 120); // frame 0 fixed
+    } else {
+      drawCharacter(boyIdleImgs, 0, boyX, 120); // frame 0 fixed
+    }
+    // no soulmate drawn during choice
+  } else {
+    if (!soulmatePresent) {
+      if (masked) {
+        drawCharacter(boyMaskedImgs, currentFrame, boyX, 120);
+      } else {
+        drawCharacter(boyCryingImgs, currentFrame, boyX, 120);
+      }
+    } else {
+      if (masked) {
+        drawCharacter(boyMaskedImgs, currentFrame, boyX, 120);
+        drawCharacter(soulmateMaskedImgs, currentFrame, soulmateX, 120);
+      } else {
+        drawCharacter(boyIdleImgs, currentFrame, boyX, 120);
+        drawCharacter(soulmateIdleImgs, currentFrame, soulmateX, 120);
+      }
+    }
+  }
+}
+
+
+  function nextStoryFrame() {
+    currentFrameIndex++;
+    const yearData = storyByYear[currentYearIndex];
+    if (currentFrameIndex >= yearData.frames.length) {
+      currentFrameIndex = 0;
+      currentYearIndex++;
+      if (currentYearIndex >= storyByYear.length) {
+        gamePhase = GamePhase.Choice;
+        currentYearIndex = storyByYear.length - 1;
+        currentFrameIndex = yearData.frames.length - 1;
+      }
+    }
+  }
+
+  function showChoicePrompt() {
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(0, 120, canvas.width, 80);
+    ctx.fillStyle = '#39ff14';
+    ctx.font = '24px monospace';
+    ctx.fillText("Should the soulmate return? Press Y for Yes or N for No.", 20, 170);
+  }
+
+  function sendPlayerChoice(choice) {
+    GameAnalytics("addDesignEvent", `player_choice:${choice}`);
+    console.log(`Logged choice: ${choice}`);
+  }
+
+  let afterChoiceYesIndex = 0;
+  let afterChoiceYesTimer = 0;
+  const afterChoiceYesInterval = 60;
+
+  function renderAfterChoiceYes() {
+  const frame = afterChoiceYesFrames[afterChoiceYesIndex];
+  drawBackground(frame);
+
+  ctx.fillStyle = '#39ff14';
+  ctx.font = '28px monospace';
+  ctx.shadowColor = '#39ff14';
+  ctx.shadowBlur = 12;
+  ctx.fillText(frame.text, 20, 70);
+  ctx.shadowBlur = 0;
+
+  updatePositions();
+
+  // Animate couple during fast frames (use currentFrame cycling)
+  drawCharacter(boyIdleImgs, currentFrame, boyX, 120);
+  drawCharacter(soulmateIdleImgs, currentFrame, soulmateX, 120);
+
+  afterChoiceYesTimer++;
+  if (afterChoiceYesTimer > afterChoiceYesInterval) {
+    afterChoiceYesTimer = 0;
+    afterChoiceYesIndex++;
+    if (afterChoiceYesIndex >= afterChoiceYesFrames.length) {
+      gamePhase = GamePhase.End;
+    }
+  }
+}
+
+  function renderAfterChoiceNo() {
+    if (!slowedDown) {
+      frameDuration *= 2;
+      slideInterval *= 2;
+      moveSpeed /= 2;
+      slowedDown = true;
+    }
+
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    ctx.font = '28px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText("She left... The story ends here.", canvas.width / 2, canvas.height / 2);
+  }
+
+  function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    updateAnimation();
+
+    if (gamePhase === GamePhase.Story) {
+      slideTimer++;
+      if (slideTimer > slideInterval) {
+        slideTimer = 0;
+        nextStoryFrame();
+      }
+      renderStoryFrame();
+    } else if (gamePhase === GamePhase.Choice) {
+      renderStoryFrame();
+      showChoicePrompt();
+    } else if (gamePhase === GamePhase.AfterChoiceYes) {
+      renderAfterChoiceYes();
+    } else if (gamePhase === GamePhase.AfterChoiceNo) {
+      renderAfterChoiceNo();
+    } else if (gamePhase === GamePhase.End) {
+      ctx.fillStyle = '#39ff14';
+      ctx.font = '30px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('The End', canvas.width / 2, canvas.height / 2);
+    }
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (gamePhase === GamePhase.Story) {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        slideTimer = 0;
+        nextStoryFrame();
+      }
+    } else if (gamePhase === GamePhase.Choice) {
+      if (e.key.toLowerCase() === 'y') {
+        playerChoice = 'yes';
+        sendPlayerChoice('yes');
+        gamePhase = GamePhase.AfterChoiceYes;
+        afterChoiceYesIndex = 0;
+        afterChoiceYesTimer = 0;
+      } else if (e.key.toLowerCase() === 'n') {
+        playerChoice = 'no';
+        sendPlayerChoice('no');
+        gamePhase = GamePhase.AfterChoiceNo;
+      }
+    }
+  });
+
+  gameLoop();
+</script>
+
+</body>
+</html>
