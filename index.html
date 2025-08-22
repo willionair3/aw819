@@ -12,55 +12,14 @@
 
 <canvas id="gameCanvas" width="800" height="400"></canvas>
 
-<!-- GameAnalytics SDK -->
-<script>
-  (function(w,d,s,u){
-    w['GameAnalytics'] = w['GameAnalytics'] || function(){(w['GameAnalytics'].q = w['GameAnalytics'].q || []).push(arguments)};
-    var ga = d.createElement(s), m = d.getElementsByTagName(s)[0];
-    ga.async = 1;
-    ga.src = u;
-    m.parentNode.insertBefore(ga,m);
-  })(window,document,'script','https://download.gameanalytics.com/js/GameAnalytics.latest.min.js');
-
-  GameAnalytics("setEnabledInfoLog", true);
-  GameAnalytics("initialize", "74d3259c304d64ec6ad15574eb975019", "d9212b3ec2f73ae0648888f637774c1b8b455bcf");
-</script>
-
 <script>
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
-  // Frames
+  // ---- Asset lists ----
   const boyIdleFrames = ['pixel_boy_idle_1.png', 'pixel_boy_idle_2.png', 'pixel_boy_idle_3.png'];
   const boyCryingFrames = ['pixel_boy_crying_1.png', 'pixel_boy_crying_2.png', 'pixel_boy_crying_3.png'];
   const soulmateIdleFrames = ['pixel_soulmate_idle_1.png', 'pixel_soulmate_idle_2.png', 'pixel_soulmate_idle_3.png'];
-
-  function preloadFrames(urls) {
-    return urls.map(url => {
-      const img = new Image();
-      img.src = url;
-      return img;
-    });
-  }
-
-  const boyIdleImgs = preloadFrames(boyIdleFrames);
-  const boyCryingImgs = preloadFrames(boyCryingFrames);
-  const soulmateIdleImgs = preloadFrames(soulmateIdleFrames);
-
-  const frameWidth = 40;
-  const frameHeight = 60;
-  const scale = 4;
-  const scaledWidth = frameWidth * scale;
-  const scaledHeight = frameHeight * scale;
-
-  const canvasWidth = canvas.width;
-  const canvasHeight = canvas.height;
-
-  // Background images for 2011 and others
-  const bg_sf = new Image();
-  bg_sf.src = 'pixel_sf.png';
-  const bg_hk = new Image();
-  bg_hk.src = 'pixel_hk.png';
 
   // After choice YES city frames
   const afterChoiceYesFrames = [
@@ -79,14 +38,6 @@
     { backgroundColor: '#add8e6', text: "Hong Kong: Home forever.", bgImageSrc: 'pixel_hk.png' },
     { backgroundColor: '#add8e6', text: "Earth: Infinite adventures around the globe.", bgImageSrc: 'pixel_earth.png' }
   ];
-
-  // Preload afterChoiceYes background images
-  const afterChoiceYesBgImgs = [];
-  for(const frame of afterChoiceYesFrames) {
-    const img = new Image();
-    img.src = frame.bgImageSrc;
-    afterChoiceYesBgImgs.push(img);
-  }
 
   // Story milestones and soulmate visibility with backgrounds
   const storyMilestones = [
@@ -124,11 +75,9 @@
   let gamePhase = GamePhase.Story;
   let playerChoice = null;
 
-  // After choice Yes city frame index
   let afterChoiceYesIndex = 0;
-
   let worldOffsetX = 0;
-  const scrollSpeed = 9; // Faster pace
+  const scrollSpeed = 9;
 
   const boyScreenX = 200;
   const soulmateScreenX = boyScreenX + scaledWidth + 20;
@@ -141,25 +90,46 @@
   let movingLeft = false;
   let movingRight = false;
 
-  // Loading assets synchronization
+  // Load background images & afterChoiceYes backgrounds
+  const bg_sf = new Image();
+  const bg_hk = new Image();
+  bg_sf.src = 'pixel_sf.png';
+  bg_hk.src = 'pixel_hk.png';
+
+  const afterChoiceYesBgImgs = [];
+  for (const frame of afterChoiceYesFrames) {
+    const img = new Image();
+    img.src = frame.bgImageSrc;
+    afterChoiceYesBgImgs.push(img);
+  }
+
+  // Load sprite frames
+  const boyIdleImgs = preloadFrames(boyIdleFrames);
+  const boyCryingImgs = preloadFrames(boyCryingFrames);
+  const soulmateIdleImgs = preloadFrames(soulmateIdleFrames);
+
+  // Asset loading sync
+  const assetsToLoad =
+    2 + boyIdleImgs.length + boyCryingImgs.length + soulmateIdleImgs.length + afterChoiceYesBgImgs.length;
   let assetsLoaded = 0;
-  const totalToLoad = 2 + boyIdleImgs.length + boyCryingImgs.length + soulmateIdleImgs.length + afterChoiceYesBgImgs.length;
-  function notifyAssetLoaded() {
+
+  function assetLoaded() {
     assetsLoaded++;
-    //console.log(`Assets loaded: ${assetsLoaded} / ${totalToLoad}`);
-    if (assetsLoaded === totalToLoad) {
-      gameLoop();
+    if (assetsLoaded === assetsToLoad) {
+      console.log("All assets loaded - start game loop");
+      requestAnimationFrame(gameLoop);
     }
   }
 
-  bg_sf.onload = () => {console.log('SF background loaded');notifyAssetLoaded();}
-  bg_hk.onload = () => {console.log('HK background loaded');notifyAssetLoaded();}
+  // Assign onload handlers for first-time load counting
+  bg_sf.onload = assetLoaded;
+  bg_hk.onload = assetLoaded;
+  boyIdleImgs.forEach(img => (img.onload = assetLoaded));
+  boyCryingImgs.forEach(img => (img.onload = assetLoaded));
+  soulmateIdleImgs.forEach(img => (img.onload = assetLoaded));
+  afterChoiceYesBgImgs.forEach(img => (img.onload = assetLoaded));
 
-  boyIdleImgs.forEach(img => img.onload = notifyAssetLoaded);
-  boyCryingImgs.forEach(img => img.onload = notifyAssetLoaded);
-  soulmateIdleImgs.forEach(img => img.onload = notifyAssetLoaded);
-  afterChoiceYesBgImgs.forEach(img => img.onload = notifyAssetLoaded);
-
+  // Current milestone finder
   function getCurrentMilestone() {
     for (let i = storyMilestones.length - 1; i >= 0; i--) {
       if (worldOffsetX >= storyMilestones[i].x) return i;
@@ -167,28 +137,28 @@
     return 0;
   }
 
+  // Current background getter
+  function currentBgImage() {
+    const index = getCurrentMilestone();
+    return storyMilestones[index].bg === 'sf' ? bg_sf : bg_hk;
+  }
+
+  // Soulmate visibility logic
   function currentSoulmateVisible() {
     if (gamePhase === GamePhase.Choice || gamePhase === GamePhase.AfterChoiceNo) return false;
-    if (gamePhase === GamePhase.AfterChoiceYes) return true; // soulmate back after yes choice
-    const index = getCurrentMilestone();
-    return storyMilestones[index].soulmateVisible;
+    if (gamePhase === GamePhase.AfterChoiceYes) return true;
+    return storyMilestones[getCurrentMilestone()].soulmateVisible;
   }
 
-  function currentBgImage(){
-    const index = getCurrentMilestone();
-    const bgType = storyMilestones[index].bg;
-    if(bgType === 'sf') return bg_sf;
-    return bg_hk;
-  }
-
+  // Current story text getter
   function currentStoryText() {
     if (gamePhase === GamePhase.AfterChoiceYes) {
       return afterChoiceYesFrames[afterChoiceYesIndex].text;
     }
-    const index = getCurrentMilestone();
-    return storyMilestones[index].text;
+    return storyMilestones[getCurrentMilestone()].text;
   }
 
+  // Update animation frame
   function updateAnimation() {
     animationTimer++;
     if (animationTimer >= animationSpeed) {
@@ -197,48 +167,35 @@
     }
   }
 
+  // Draw character helper
   function drawCharacter(imgArray, x, y, frame) {
     if (!imgArray.length) return;
     const img = imgArray[frame];
-    if (img.complete) {
-      ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
-    }
+    if (img.complete) ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
   }
 
-  function drawButton(x, y, w, h, fill, textColor, text) {
-    ctx.fillStyle = fill;
-    ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = textColor;
-    ctx.font = '28px monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, x + w / 2, y + h / 2);
+  // Clamp scroll bounds using actual bg widths
+  function getMaxScroll() {
+    const bgImg =
+      gamePhase === GamePhase.Story || gamePhase === GamePhase.Choice || gamePhase === GamePhase.AfterChoiceNo
+        ? currentBgImage()
+        : null;
+    if (!bgImg || !bgImg.width) return -1000;
+    return -(bgImg.width * 3 - canvasWidth);
   }
 
+  // Main game loop
   function gameLoop() {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
+    // Scroll update based on input, constrain scroll bounds
     if (gamePhase === GamePhase.Story) {
-      if (movingLeft) {
-        worldOffsetX = Math.min(worldOffsetX + scrollSpeed, 0);
-      }
-      if (movingRight) {
-        const maxRight = - (currentBgImage().width * 3 - canvasWidth);
-        worldOffsetX = Math.max(worldOffsetX - scrollSpeed, maxRight);
-      }
+      if (movingLeft) worldOffsetX = Math.min(worldOffsetX + scrollSpeed, 0);
+      if (movingRight) worldOffsetX = Math.max(worldOffsetX - scrollSpeed, getMaxScroll());
     }
 
-    if (gamePhase === GamePhase.Story || gamePhase === GamePhase.Choice || gamePhase === GamePhase.AfterChoiceNo) {
-      const bgImg = currentBgImage();
-      if (bgImg.complete) {
-        for(let i = -Math.floor((-worldOffsetX)/bgImg.width)-1; i <= Math.ceil(canvasWidth/bgImg.width); i++) {
-          ctx.drawImage(bgImg, i*bgImg.width + worldOffsetX, 0, bgImg.width, canvasHeight);
-        }
-      } else {
-        ctx.fillStyle = '#111';
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-      }
-    } else if (gamePhase === GamePhase.AfterChoiceYes) {
+    // Draw background scene
+    if (gamePhase === GamePhase.AfterChoiceYes) {
       let bgImg = afterChoiceYesBgImgs[afterChoiceYesIndex];
       if (bgImg.complete) {
         ctx.drawImage(bgImg, 0, 0, canvasWidth, canvasHeight);
@@ -246,10 +203,25 @@
         ctx.fillStyle = afterChoiceYesFrames[afterChoiceYesIndex].backgroundColor;
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
       }
+    } else {
+      let bgImg = currentBgImage();
+      if (bgImg.complete) {
+        for (
+          let i = -Math.floor((-worldOffsetX) / bgImg.width) - 1;
+          i <= Math.ceil(canvasWidth / bgImg.width);
+          i++
+        ) {
+          ctx.drawImage(bgImg, i * bgImg.width + worldOffsetX, 0, bgImg.width, canvasHeight);
+        }
+      } else {
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      }
     }
 
     updateAnimation();
 
+    // Draw story text
     ctx.fillStyle = '#39ff14';
     ctx.font = '28px monospace';
     ctx.shadowColor = '#39ff14';
@@ -257,6 +229,7 @@
     ctx.fillText(currentStoryText(), 20, 70);
     ctx.shadowBlur = 0;
 
+    // Draw characters
     if (gamePhase === GamePhase.AfterChoiceYes) {
       drawCharacter(boyIdleImgs, boyScreenX, charScreenY, animationFrame);
       drawCharacter(soulmateIdleImgs, soulmateScreenX, charScreenY, animationFrame);
@@ -267,6 +240,7 @@
       drawCharacter(boyCryingImgs, boyScreenX, charScreenY, animationFrame);
     }
 
+    // Phase transitions
     if (getCurrentMilestone() === storyMilestones.length - 1 && gamePhase === GamePhase.Story) {
       gamePhase = GamePhase.Choice;
     }
@@ -277,8 +251,7 @@
       ctx.fillStyle = '#39ff14';
       ctx.font = '36px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText("Should the soulmate return?", canvasWidth / 2, canvasHeight / 2 - 40);
-
+      ctx.fillText('Should the soulmate return?', canvasWidth / 2, canvasHeight / 2 - 40);
       drawButton(canvasWidth / 2 - 140, canvasHeight / 2, 120, 60, '#39ff14', '#000', 'YES');
       drawButton(canvasWidth / 2 + 20, canvasHeight / 2, 120, 60, '#f33914', '#000', 'NO');
     }
@@ -287,7 +260,11 @@
       ctx.fillStyle = '#39ff14';
       ctx.font = '24px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(`Tap or swipe left to continue (${afterChoiceYesIndex + 1}/${afterChoiceYesFrames.length})`, canvasWidth / 2, canvasHeight - 30);
+      ctx.fillText(
+        `Tap or swipe left to continue (${afterChoiceYesIndex + 1}/${afterChoiceYesFrames.length})`,
+        canvasWidth / 2,
+        canvasHeight - 30
+      );
     }
 
     if (gamePhase === GamePhase.AfterChoiceNo) {
@@ -296,7 +273,7 @@
       ctx.fillStyle = '#39ff14';
       ctx.font = '36px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText("You chose NO. Soulmate left.", canvasWidth / 2, canvasHeight / 2);
+      ctx.fillText('You chose NO. Soulmate left.', canvasWidth / 2, canvasHeight / 2);
       drawCharacter(boyCryingImgs, boyScreenX, charScreenY, animationFrame);
     }
 
@@ -310,6 +287,18 @@
     requestAnimationFrame(gameLoop);
   }
 
+  // Draw button helper function
+  function drawButton(x, y, w, h, fill, textColor, text) {
+    ctx.fillStyle = fill;
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = textColor;
+    ctx.font = '28px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + w / 2, y + h / 2);
+  }
+
+  // Input handlers (keyboard)
   window.addEventListener('keydown', e => {
     if (gamePhase === GamePhase.Story) {
       if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') movingLeft = true;
@@ -331,10 +320,9 @@
       touchStartX = e.touches[0].clientX;
     }
   });
-
   canvas.addEventListener('touchmove', e => {
     if (touchStartX === null) return;
-    const currentX = e.touches[0].clientX;
+    const currentX = e.touches.clientX;
     const diff = currentX - touchStartX;
 
     if (diff > 10) {
@@ -345,41 +333,46 @@
       movingLeft = false;
     }
   });
-
   canvas.addEventListener('touchend', e => {
     movingLeft = false;
     movingRight = false;
     touchStartX = null;
   });
 
-  // Choice buttons click and afterChoiceYes navigation
+  // Choice and AfterChoiceYes navigation with click/tap
   canvas.addEventListener('click', e => {
     const rect = canvas.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
     if (gamePhase === GamePhase.Choice) {
-      if (clickX >= canvasWidth / 2 - 140 && clickX <= canvasWidth / 2 - 20 &&
-          clickY >= canvasHeight / 2 && clickY <= canvasHeight / 2 + 60) {
+      if (
+        clickX >= canvasWidth / 2 - 140 &&
+        clickX <= canvasWidth / 2 - 20 &&
+        clickY >= canvasHeight / 2 &&
+        clickY <= canvasHeight / 2 + 60
+      ) {
         playerChoice = 'yes';
-        GameAnalytics("addDesignEvent", `player_choice:yes`);
         gamePhase = GamePhase.AfterChoiceYes;
         afterChoiceYesIndex = 0;
-      } else if (clickX >= canvasWidth / 2 + 20 && clickX <= canvasWidth / 2 + 140 &&
-                 clickY >= canvasHeight / 2 && clickY <= canvasHeight / 2 + 60) {
+        GameAnalytics('addDesignEvent', 'player_choice:yes');
+      } else if (
+        clickX >= canvasWidth / 2 + 20 &&
+        clickX <= canvasWidth / 2 + 140 &&
+        clickY >= canvasHeight / 2 &&
+        clickY <= canvasHeight / 2 + 60
+      ) {
         playerChoice = 'no';
-        GameAnalytics("addDesignEvent", `player_choice:no`);
         gamePhase = GamePhase.AfterChoiceNo;
+        GameAnalytics('addDesignEvent', 'player_choice:no');
       }
     } else if (gamePhase === GamePhase.AfterChoiceYes) {
       afterChoiceYesIndex++;
-      if (afterChoiceYesIndex >= afterChoiceYesFrames.length) {
-        gamePhase = GamePhase.End;
-      }
+      if (afterChoiceYesIndex >= afterChoiceYesFrames.length) gamePhase = GamePhase.End;
     }
   });
 
-  // Swipe controls for afterChoiceYes frames
+  // Swipe navigation for AfterChoiceYes frames
   let afterChoiceTouchStartX = null;
   canvas.addEventListener('touchstart', e => {
     if (gamePhase === GamePhase.AfterChoiceYes) {
@@ -388,21 +381,20 @@
   });
   canvas.addEventListener('touchend', e => {
     if (gamePhase === GamePhase.AfterChoiceYes && afterChoiceTouchStartX !== null) {
-      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndX = e.changedTouches.clientX;
       const deltaX = touchEndX - afterChoiceTouchStartX;
       afterChoiceTouchStartX = null;
-      if (deltaX < -30) { // swipe left advances to next city
+      if (deltaX < -30) {
         afterChoiceYesIndex++;
-        if (afterChoiceYesIndex >= afterChoiceYesFrames.length) {
-          gamePhase = GamePhase.End;
-        }
-      } else if (deltaX > 30) { // swipe right goes back
+        if (afterChoiceYesIndex >= afterChoiceYesFrames.length) gamePhase = GamePhase.End;
+      } else if (deltaX > 30) {
         if (afterChoiceYesIndex > 0) afterChoiceYesIndex--;
       }
     }
   });
 
-  // Only start gameLoop after all assets loaded
+  // Start loading and wait for all assets
+  // gameLoop will start after all assets callbacks run
 </script>
 
 </body>
