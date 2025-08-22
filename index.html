@@ -4,8 +4,17 @@
   <meta charset="UTF-8" />
   <title>awSince1984</title>
   <style>
-    body { margin: 0; overflow: hidden; background: #111; }
-    canvas { display: block; margin: auto; background: #111; touch-action: none; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #111;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: #111;
+      touch-action: none;
+    }
   </style>
 </head>
 <body>
@@ -16,19 +25,28 @@
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
-  // Frame and scaling
+  // Frame dimensions and scale
   const frameWidth = 40;
   const frameHeight = 60;
   const scale = 4;
   const scaledWidth = frameWidth * scale;
   const scaledHeight = frameHeight * scale;
 
-  // Asset lists
+  // Animation frame arrays
   const boyIdleFrames = ['pixel_boy_idle_1.png', 'pixel_boy_idle_2.png', 'pixel_boy_idle_3.png'];
+  const boyWalkFrames = ['pixel_boy_walk_1.png', 'pixel_boy_walk_2.png', 'pixel_boy_walk_3.png', 'pixel_boy_walk_4.png'];
   const boyCryingFrames = ['pixel_boy_crying_1.png', 'pixel_boy_crying_2.png', 'pixel_boy_crying_3.png'];
-  const soulmateIdleFrames = ['pixel_soulmate_idle_1.png', 'pixel_soulmate_idle_2.png', 'pixel_soulmate_idle_3.png'];
+  const boyCryingWalkFrames = ['pixel_boy_crying_walk_1.png', 'pixel_boy_crying_walk_2.png', 'pixel_boy_crying_walk_3.png', 'pixel_boy_crying_walk_4.png'];
 
-  // After choice YES city frames
+  const soulmateIdleFrames = ['pixel_soulmate_idle_1.png', 'pixel_soulmate_idle_2.png', 'pixel_soulmate_idle_3.png'];
+  const soulmateWalkFrames = ['pixel_soulmate_walk_1.png', 'pixel_soulmate_walk_2.png', 'pixel_soulmate_walk_3.png', 'pixel_soulmate_walk_4.png'];
+
+  const boyMaskedFrames = ['pixel_boy_masked_1.png', 'pixel_boy_masked_2.png', 'pixel_boy_masked_3.png'];
+  const soulmateMaskedFrames = ['pixel_soulmate_masked_1.png', 'pixel_soulmate_masked_2.png', 'pixel_soulmate_masked_3.png'];
+
+  const boyMaskedWalkFrames = ['pixel_boy_masked_walk_1.png', 'pixel_boy_masked_walk_2.png', 'pixel_boy_masked_walk_3.png', 'pixel_boy_masked_walk_4.png'];
+  const soulmateMaskedWalkFrames = ['pixel_soulmate_masked_walk_1.png', 'pixel_soulmate_masked_walk_2.png', 'pixel_soulmate_masked_walk_3.png', 'pixel_soulmate_masked_walk_4.png'];
+
   const afterChoiceYesFrames = [
     { backgroundColor: '#f5f0e6', text: "Budapest: A new journey begins.", bgImageSrc: 'pixel_budapest.png' },
     { backgroundColor: '#d0d7de', text: "Prague: Exploring ancient streets.", bgImageSrc: 'pixel_prague.png' },
@@ -46,7 +64,6 @@
     { backgroundColor: '#add8e6', text: "Earth: Infinite adventures around the globe.", bgImageSrc: 'pixel_earth.png' }
   ];
 
-  // Story milestones and soulmate visibility with backgrounds
   const storyMilestones = [
     { x: 0, text: "The boy starts the year filled with hope.", soulmateVisible: true, bg: 'sf' },
     { x: 150, text: "In August 2011 they start dating officially.", soulmateVisible: true, bg: 'sf' },
@@ -61,7 +78,7 @@
     { x: 2400, text: "Overcoming challenges with strength.", soulmateVisible: true, bg: 'hk' },
     { x: 2700, text: "Tough times in September 2019.", soulmateVisible: false, bg: 'hk' },
     { x: 3000, text: "Reunited after November 2019.", soulmateVisible: true, bg: 'hk' },
-    { x: 3300, text: "A world changed, faces masked.", soulmateVisible: true, bg: 'hk' },
+    { x: 3300, text: "A world changed, faces masked.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
     { x: 3600, text: "Hope grows anew.", soulmateVisible: true, bg: 'hk' },
     { x: 3900, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk' },
     { x: 4200, text: "Dreams and doubts meet.", soulmateVisible: true, bg: 'hk' },
@@ -77,6 +94,9 @@
   let afterChoiceYesIndex = 0;
   let worldOffsetX = 0;
 
+  // New scroll offset for afterChoiceYes frames
+  let afterChoiceWorldOffsetX = 0;
+
   const scrollSpeed = 9;
   const boyScreenX = 200;
   const soulmateScreenX = boyScreenX + scaledWidth + 20;
@@ -84,25 +104,38 @@
 
   let animationFrame = 0;
   let animationTimer = 0;
-  const animationSpeed = 12;
+  let previousFrames = null;
 
   let movingLeft = false;
   let movingRight = false;
 
   // Load backgrounds
-  const bg_sf = new Image();
-  bg_sf.src = 'pixel_sf.png';
-  const bg_hk = new Image();
-  bg_hk.src = 'pixel_hk.png';
+  const bg_sf = new Image(); bg_sf.src = 'pixel_sf.png';
+  const bg_hk = new Image(); bg_hk.src = 'pixel_hk.png';
+  const bg_end = new Image(); bg_end.src = 'background_hk.png';
 
-  // Preload after choice YES backgrounds
+  const choiceBg = bg_end; // Use the same hk background image
+const choiceSentences = [
+  "how can you wait for someone who might never come back?",
+  "because I know you're worth the risk",
+  "what if I end up breaking your heart?",
+  "then i will be a broken heart that loved you fully. i dont expect you to promise me anything - not a timeframe, not even certainty. i'll wait because i'd rather spend my life hoping for you than living without you. and even if you never come back, i will still be glad i waited. because some people are worth it, and you're one of them"
+];
+let choiceSentenceIndex = 0;
+let charIndex = 0;
+let charTimer = 0;
+const charDelay = 3; // frames delay between characters
+const sentencePause = 80; // pause frames after full sentence
+let pauseTimer = 0;
+
+
+  // After choice YES backgrounds
   const afterChoiceYesBgImgs = afterChoiceYesFrames.map(frame => {
     const img = new Image();
     img.src = frame.bgImageSrc;
     return img;
   });
 
-  // Load sprite frames
   function preloadFrames(urls) {
     return urls.map(url => {
       const img = new Image();
@@ -110,14 +143,30 @@
       return img;
     });
   }
+
+  // Load sprite frames
   const boyIdleImgs = preloadFrames(boyIdleFrames);
+  const boyWalkImgs = preloadFrames(boyWalkFrames);
   const boyCryingImgs = preloadFrames(boyCryingFrames);
+  const boyCryingWalkImgs = preloadFrames(boyCryingWalkFrames);
   const soulmateIdleImgs = preloadFrames(soulmateIdleFrames);
+  const soulmateWalkImgs = preloadFrames(soulmateWalkFrames);
+  const boyMaskedImgs = preloadFrames(boyMaskedFrames);
+  const soulmateMaskedImgs = preloadFrames(soulmateMaskedFrames);
+  const boyMaskedWalkImgs = preloadFrames(boyMaskedWalkFrames);
+  const soulmateMaskedWalkImgs = preloadFrames(soulmateMaskedWalkFrames);
 
-  // Asset loading tracking
-  const assets = [bg_sf, bg_hk, ...boyIdleImgs, ...boyCryingImgs, ...soulmateIdleImgs, ...afterChoiceYesBgImgs];
+  // Asset loading tracker
+  const assets = [
+    bg_sf, bg_hk,
+    ...boyIdleImgs, ...boyWalkImgs, ...boyCryingImgs, ...boyCryingWalkImgs,
+    ...soulmateIdleImgs, ...soulmateWalkImgs,
+    ...boyMaskedImgs, ...soulmateMaskedImgs,
+    ...boyMaskedWalkImgs, ...soulmateMaskedWalkImgs,
+    ...afterChoiceYesBgImgs
+  ];
+
   let assetsLoaded = 0;
-
   assets.forEach(img => img.onload = () => {
     assetsLoaded++;
     if (assetsLoaded === assets.length) {
@@ -126,22 +175,28 @@
     }
   });
 
+  // Calculate the positive offset for milestone checking
   function getCurrentMilestone() {
+    const positiveOffset = -worldOffsetX;
     for(let i = storyMilestones.length - 1; i >= 0; i--) {
-      if(worldOffsetX >= storyMilestones[i].x) return i;
+      if(positiveOffset >= storyMilestones[i].x) return i;
     }
     return 0;
   }
 
   function currentBgImage() {
-    const index = getCurrentMilestone();
-    return storyMilestones[index].bg === 'sf' ? bg_sf : bg_hk;
+    const idx = getCurrentMilestone();
+    return storyMilestones[idx].bg === 'sf' ? bg_sf : bg_hk;
   }
 
   function currentSoulmateVisible() {
     if(gamePhase === GamePhase.Choice || gamePhase === GamePhase.AfterChoiceNo) return false;
     if(gamePhase === GamePhase.AfterChoiceYes) return true;
     return storyMilestones[getCurrentMilestone()].soulmateVisible;
+  }
+
+  function currentSoulmateMaskedVisible() {
+    return storyMilestones[getCurrentMilestone()].maskedVisible || false;
   }
 
   function currentStoryText() {
@@ -151,27 +206,66 @@
     return storyMilestones[getCurrentMilestone()].text;
   }
 
+  // Animation update with frame array tracking and reset on change
+  let currentFrames = boyIdleImgs; // default animation frames
+
   function updateAnimation() {
     animationTimer++;
-    if(animationTimer >= animationSpeed) {
+    const animationRate = movingLeft || movingRight ? 6 : 12;
+    if (animationTimer >= animationRate) {
       animationTimer = 0;
-      animationFrame = (animationFrame + 1) % boyIdleImgs.length;
+
+      let newFrames;
+      if (gamePhase === GamePhase.AfterChoiceYes) {
+        newFrames = boyWalkImgs;
+      } else if (movingLeft || movingRight) {
+        if (currentSoulmateMaskedVisible()) {
+          newFrames = boyMaskedWalkImgs;
+        } else if (!currentSoulmateVisible()) {
+          newFrames = boyCryingWalkImgs;
+        } else {
+          newFrames = boyWalkImgs;
+        }
+      } else {
+        if (currentSoulmateMaskedVisible()) {
+          newFrames = boyMaskedImgs;
+        } else if (!currentSoulmateVisible()) {
+          newFrames = boyCryingImgs;
+        } else {
+          newFrames = boyIdleImgs;
+        }
+      }
+
+      if (newFrames !== currentFrames) {
+        animationFrame = 0;
+        currentFrames = newFrames;
+      } else {
+        animationFrame++;
+        if (animationFrame >= currentFrames.length) {
+          animationFrame = 0;
+        }
+      }
     }
   }
 
   function drawCharacter(imgArray, x, y, frame) {
-    if(imgArray.length === 0) return;
-    const img = imgArray[frame];
-    if(img.complete) ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+    if (!imgArray.length) return;
+    const validFrame = frame % imgArray.length;
+    const img = imgArray[validFrame];
+    if (img && img.complete) ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
   }
 
+  // Scroll limit calculation for story milestones
   function getMaxScroll() {
-    const bgImg = (gamePhase === GamePhase.Story || gamePhase === GamePhase.Choice || gamePhase === GamePhase.AfterChoiceNo) ? currentBgImage() : null;
-    if(!bgImg || !bgImg.width) return -1000;
-    return -(bgImg.width * 3 - canvas.width);
+    const bgImg = currentBgImage();
+    if (!bgImg || !bgImg.width) return -6000;
+    const totalWidthNeeded = 5400 + canvas.width;
+    const neededRepeats = Math.ceil(totalWidthNeeded / bgImg.width);
+    return -(bgImg.width * neededRepeats - canvas.width);
   }
 
-  function drawButton(x, y, w, h, fill, textColor, text) {
+  // Draw button helper
+  function drawButton(x, y, w, h, fill, textColor, text){
     ctx.fillStyle = fill;
     ctx.fillRect(x, y, w, h);
     ctx.fillStyle = textColor;
@@ -182,110 +276,217 @@
   }
 
   function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    if(gamePhase === GamePhase.Story) {
+    // Handle walking state
+    const isWalking = movingLeft || movingRight;
+
+    if(gamePhase === GamePhase.Story){
       if(movingLeft) worldOffsetX = Math.min(worldOffsetX + scrollSpeed, 0);
       if(movingRight) worldOffsetX = Math.max(worldOffsetX - scrollSpeed, getMaxScroll());
     }
 
-    if(gamePhase === GamePhase.AfterChoiceYes) {
-      const bgImg = afterChoiceYesBgImgs[afterChoiceYesIndex];
-      ctx.fillStyle = afterChoiceYesFrames[afterChoiceYesIndex].backgroundColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      if(bgImg.complete) ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-    } else {
-      const bgImg = currentBgImage();
-      if(bgImg.complete) {
-        for(let i = -Math.floor((-worldOffsetX)/bgImg.width)-1; i <= Math.ceil(canvas.width/bgImg.width); i++) {
-          ctx.drawImage(bgImg, i*bgImg.width + worldOffsetX, 0, bgImg.width, canvas.height);
-        }
+    if(gamePhase === GamePhase.Choice) {
+  // Draw choice background (hk)
+  if(choiceBg.complete) {
+    ctx.drawImage(choiceBg, 0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
+
+  ctx.fillStyle = '#39ff14';
+  ctx.font = '28px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Typing effect logic
+  if(pauseTimer > 0) {
+    pauseTimer--;
+  } else {
+    charTimer++;
+    if(charTimer >= charDelay) {
+      charTimer = 0;
+      if(charIndex < choiceSentences[choiceSentenceIndex].length) {
+        charIndex++;
       } else {
-        ctx.fillStyle = '#111';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        pauseTimer = sentencePause;
       }
     }
+  }
 
-    updateAnimation();
+  // Draw the partial sentence
+  const textToShow = choiceSentences[choiceSentenceIndex].substring(0, charIndex);
+  ctx.fillText(textToShow, canvas.width/2, canvas.height/2);
 
-    ctx.fillStyle = '#39ff14';
-    ctx.font = '28px monospace';
-    ctx.shadowColor = '#39ff14';
-    ctx.shadowBlur = 10;
-    ctx.fillText(currentStoryText(), 20, 70);
-    ctx.shadowBlur = 0;
+  // When full sentence displayed and pause finished, move to next sentence
+  if(charIndex === choiceSentences[choiceSentenceIndex].length && pauseTimer === 0 && charTimer === 0) {
+    choiceSentenceIndex = (choiceSentenceIndex + 1) % choiceSentences.length;
+    charIndex = 0;
+  }
 
-    if(gamePhase === GamePhase.AfterChoiceYes) {
-      drawCharacter(boyIdleImgs, boyScreenX, charScreenY, animationFrame);
-      drawCharacter(soulmateIdleImgs, soulmateScreenX, charScreenY, animationFrame);
-    } else if(currentSoulmateVisible()) {
-      drawCharacter(boyIdleImgs, boyScreenX, charScreenY, animationFrame);
-      drawCharacter(soulmateIdleImgs, soulmateScreenX, charScreenY, animationFrame);
-    } else {
-      drawCharacter(boyCryingImgs, boyScreenX, charScreenY, animationFrame);
-    }
+  // Draw Yes/No buttons over text (optional, keep your drawButton calls)
+  drawButton(canvas.width/2 - 140, canvas.height/2 + 40, 120, 60, '#39ff14', '#000', 'YES');
+  drawButton(canvas.width/2 + 20, canvas.height/2 + 40, 120, 60, '#f33914', '#000', 'NO');
+  
+  return; // Skip the rest of the loop during choice phase
+}
 
-    if(getCurrentMilestone() === storyMilestones.length - 1 && gamePhase === GamePhase.Story) {
-      gamePhase = GamePhase.Choice;
-    }
 
-    if(gamePhase === GamePhase.Choice) {
-      ctx.fillStyle = 'rgba(0,0,0,0.7)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#39ff14';
-      ctx.font = '36px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText("Should the soulmate return?", canvas.width/2, canvas.height/2 - 40);
-      drawButton(canvas.width/2 - 140, canvas.height/2, 120, 60, '#39ff14', '#000', 'YES');
-      drawButton(canvas.width/2 + 20, canvas.height/2, 120, 60, '#f33914', '#000', 'NO');
-    }
+    if(gamePhase === GamePhase.AfterChoiceYes){
+      // Scroll after choice YES frames
+      const afterChoiceFrameWidth = canvas.width;
+      const afterChoiceTotalWidth = afterChoiceYesFrames.length * afterChoiceFrameWidth;
 
-    if(gamePhase === GamePhase.AfterChoiceYes) {
+      if(movingLeft) afterChoiceWorldOffsetX = Math.min(afterChoiceWorldOffsetX + scrollSpeed, 0);
+      if(movingRight) afterChoiceWorldOffsetX = Math.max(afterChoiceWorldOffsetX - scrollSpeed, -(afterChoiceTotalWidth - canvas.width));
+
+      // Draw backgrounds tiled horizontally
+      for(let i=0; i < afterChoiceYesFrames.length; i++){
+        const bgImg = afterChoiceYesBgImgs[i];
+        const x = i * afterChoiceFrameWidth + afterChoiceWorldOffsetX;
+        if(bgImg.complete){
+          ctx.fillStyle = afterChoiceYesFrames[i].backgroundColor;
+          ctx.fillRect(x, 0, afterChoiceFrameWidth, canvas.height);
+          ctx.drawImage(bgImg, x, 0, afterChoiceFrameWidth, canvas.height);
+        }
+      }
+
+      // Display current afterChoiceYes text based on scroll position
+      const currentIndex = Math.floor(-afterChoiceWorldOffsetX / afterChoiceFrameWidth);
+      const clampedIndex = Math.min(Math.max(currentIndex, 0), afterChoiceYesFrames.length - 1);
       ctx.fillStyle = '#39ff14';
       ctx.font = '24px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(`Tap or swipe left to continue (${afterChoiceYesIndex+1}/${afterChoiceYesFrames.length})`, canvas.width / 2, canvas.height - 30);
+      ctx.fillText(afterChoiceYesFrames[clampedIndex].text, canvas.width / 2, 70);
+
+      // Draw boy and soulmate walking animation
+      drawCharacter(boyWalkImgs, boyScreenX, charScreenY, animationFrame);
+      drawCharacter(soulmateWalkImgs, soulmateScreenX, charScreenY, animationFrame);
+
+    } else {
+      // Draw story background repeatedly
+      const bgImg = currentBgImage();
+      if(bgImg.complete){
+        const totalWidthNeeded = 5400 + canvas.width;
+        const repeatCount = Math.ceil(totalWidthNeeded / bgImg.width) + 1;
+        for(let i=0; i<repeatCount; i++){
+          const x = i*bgImg.width + worldOffsetX;
+          ctx.drawImage(bgImg, x, 0, bgImg.width, canvas.height);
+        }
+      } else {
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+      }
+
+      updateAnimation();
+
+      ctx.fillStyle = '#39ff14';
+      ctx.font = '28px monospace';
+      ctx.shadowColor = '#39ff14';
+      ctx.shadowBlur = 10;
+      ctx.fillText(currentStoryText(), 20, 70);
+      ctx.shadowBlur = 0;
+
+      const masked = currentSoulmateMaskedVisible();
+      const soulmateVisible = currentSoulmateVisible();
+
+      if(gamePhase === GamePhase.Choice) {
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#39ff14';
+        ctx.font = '36px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Should the soulmate return?', canvas.width/2, canvas.height/2 - 40);
+        drawButton(canvas.width/2 - 140, canvas.height/2, 120, 60, '#39ff14', '#000', 'YES');
+        drawButton(canvas.width/2 + 20, canvas.height/2, 120, 60, '#f33914', '#000', 'NO');
+      } else if(gamePhase === GamePhase.AfterChoiceNo) {
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#39ff14';
+        ctx.font = '36px monospace';
+        ctx.textAlign ='center';
+        ctx.fillText('You chose NO. Soulmate left.', canvas.width/2, canvas.height/2);
+        if(isWalking){
+          drawCharacter(boyCryingWalkImgs, boyScreenX, charScreenY, animationFrame);
+        } else {
+          drawCharacter(boyCryingImgs, boyScreenX, charScreenY, animationFrame);
+        }
+      } else if(gamePhase === GamePhase.End) {
+        ctx.fillStyle = '#39ff14';
+        ctx.font = '40px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('The End', canvas.width/2, canvas.height/2);
+      } else {
+        // Normal story animation drawing
+        if(soulmateVisible) {
+          if(masked) {
+            if(isWalking) {
+              drawCharacter(boyMaskedWalkImgs, boyScreenX, charScreenY, animationFrame);
+              drawCharacter(soulmateMaskedWalkImgs, soulmateScreenX, charScreenY, animationFrame);
+            } else {
+              drawCharacter(boyMaskedImgs, boyScreenX, charScreenY, animationFrame);
+              drawCharacter(soulmateMaskedImgs, soulmateScreenX, charScreenY, animationFrame);
+            }
+          } else {
+            if(isWalking) {
+              drawCharacter(boyWalkImgs, boyScreenX, charScreenY, animationFrame);
+              drawCharacter(soulmateWalkImgs, soulmateScreenX, charScreenY, animationFrame);
+            } else {
+              drawCharacter(boyIdleImgs, boyScreenX, charScreenY, animationFrame);
+              drawCharacter(soulmateIdleImgs, soulmateScreenX, charScreenY, animationFrame);
+            }
+          }
+        } else {
+          // Crying boy animations when soulmate invisible
+          if(isWalking) {
+            drawCharacter(boyCryingWalkImgs, boyScreenX, charScreenY, animationFrame);
+          } else {
+            drawCharacter(boyCryingImgs, boyScreenX, charScreenY, animationFrame);
+          }
+        }
+      }
     }
 
-    if(gamePhase === GamePhase.AfterChoiceNo) {
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#39ff14';
-      ctx.font = '36px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText("You chose NO. Soulmate left.", canvas.width/2, canvas.height/2);
-      drawCharacter(boyCryingImgs, boyScreenX, charScreenY, animationFrame);
-    }
-
-    if(gamePhase === GamePhase.End) {
-      ctx.fillStyle = '#39ff14';
-      ctx.font = '40px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText("The End", canvas.width/2, canvas.height/2);
+    // Automatically switch to Choice phase at last milestone
+    if(getCurrentMilestone() === storyMilestones.length - 1 && gamePhase === GamePhase.Story) {
+      gamePhase = GamePhase.Choice;
     }
 
     requestAnimationFrame(gameLoop);
   }
 
-  // Input handlers
+  // Input handlers for story and after choice YES scroll
   window.addEventListener('keydown', e => {
-    if(gamePhase === GamePhase.Story) {
+    const isMovementKey = e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a' || e.key === 'ArrowRight' || e.key.toLowerCase() === 'd';
+    if (!isMovementKey) return;
+
+    if(gamePhase === GamePhase.Story){
+      if(e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') movingLeft = true;
+      if(e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') movingRight = true;
+    } else if (gamePhase === GamePhase.AfterChoiceYes) {
       if(e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') movingLeft = true;
       if(e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') movingRight = true;
     }
   });
 
   window.addEventListener('keyup', e => {
-    if(gamePhase === GamePhase.Story) {
+    const isMovementKey = e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a' || e.key === 'ArrowRight' || e.key.toLowerCase() === 'd';
+    if (!isMovementKey) return;
+
+    if(gamePhase === GamePhase.Story){
+      if(e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') movingLeft = false;
+      if(e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') movingRight = false;
+    } else if (gamePhase === GamePhase.AfterChoiceYes){
       if(e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') movingLeft = false;
       if(e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') movingRight = false;
     }
   });
 
-  // Touch controls for story scroll
+  // Touch input handlers (optional) - simplified for brevity
   let touchStartX = null;
   canvas.addEventListener('touchstart', e => {
-    if(gamePhase === GamePhase.Story) {
+    if(gamePhase === GamePhase.Story || gamePhase === GamePhase.AfterChoiceYes){
       touchStartX = e.touches[0].clientX;
     }
   });
@@ -309,49 +510,25 @@
     touchStartX = null;
   });
 
-  // Choice buttons and advancing afterChoice frames
   canvas.addEventListener('click', e => {
-    const rect = canvas.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+  const rect = canvas.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const clickY = e.clientY - rect.top;
 
-    if(gamePhase === GamePhase.Choice) {
-      if(clickX >= canvas.width/2 - 140 && clickX <= canvas.width/2 - 20 && clickY >= canvas.height/2 && clickY <= canvas.height/2 + 60){
-        playerChoice = 'yes';
-        gamePhase = GamePhase.AfterChoiceYes;
-        afterChoiceYesIndex = 0;
-      } else if(clickX >= canvas.width/2 + 20 && clickX <= canvas.width/2 + 140 && clickY >= canvas.height/2 && clickY <= canvas.height/2 + 60){
-        playerChoice = 'no';
-        gamePhase = GamePhase.AfterChoiceNo;
-      }
-    } else if(gamePhase === GamePhase.AfterChoiceYes) {
-      afterChoiceYesIndex++;
-      if(afterChoiceYesIndex >= afterChoiceYesFrames.length) {
-        gamePhase = GamePhase.End;
-      }
+  if(gamePhase === GamePhase.Choice) {
+    if(clickX >= canvas.width/2 - 140 && clickX <= canvas.width/2 - 20 && clickY >= canvas.height/2 && clickY <= canvas.height/2 + 60){
+      playerChoice = 'yes';
+      gamePhase = GamePhase.AfterChoiceYes;
+      afterChoiceYesIndex = 0; // optional, not strictly needed if fully scroll-driven
+      afterChoiceWorldOffsetX = 0;
+      movingLeft = false;   // RESET movement flags here
+      movingRight = false;
     }
-  });
+  }
+});
 
-  // Swipe navigation for afterChoiceYes
-  let afterChoiceTouchStartX = null;
-  canvas.addEventListener('touchstart', e => {
-    if(gamePhase === GamePhase.AfterChoiceYes) {
-      afterChoiceTouchStartX = e.touches[0].clientX;
-    }
-  });
-  canvas.addEventListener('touchend', e => {
-    if(gamePhase === GamePhase.AfterChoiceYes && afterChoiceTouchStartX !== null) {
-      const touchEndX = e.changedTouches[0].clientX;
-      const deltaX = touchEndX - afterChoiceTouchStartX;
-      afterChoiceTouchStartX = null;
-      if(deltaX < -30) {
-        afterChoiceYesIndex++;
-        if(afterChoiceYesIndex >= afterChoiceYesFrames.length) gamePhase = GamePhase.End;
-      } else if(deltaX > 30) {
-        if(afterChoiceYesIndex > 0) afterChoiceYesIndex--;
-      }
-    }
-  });
+
+  requestAnimationFrame(gameLoop);
 </script>
 
 </body>
