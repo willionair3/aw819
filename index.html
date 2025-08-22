@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Relationship Story Game - Consistent Background & Swipe with All Cities</title>
+  <title>awSince2011</title>
   <style>
     body { margin: 0; overflow: hidden; background: #111; }
     canvas { display: block; margin: auto; background: #111; touch-action: none; }
@@ -30,12 +30,10 @@
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
-  // Frame URLs (3 frames each)
+  // Frames
   const boyIdleFrames = ['pixel_boy_idle_1.png', 'pixel_boy_idle_2.png', 'pixel_boy_idle_3.png'];
-  const boyMaskedFrames = ['pixel_boy_masked_1.png', 'pixel_boy_masked_2.png', 'pixel_boy_masked_3.png'];
   const boyCryingFrames = ['pixel_boy_crying_1.png', 'pixel_boy_crying_2.png', 'pixel_boy_crying_3.png'];
   const soulmateIdleFrames = ['pixel_soulmate_idle_1.png', 'pixel_soulmate_idle_2.png', 'pixel_soulmate_idle_3.png'];
-  const soulmateMaskedFrames = ['pixel_soulmate_masked_1.png', 'pixel_soulmate_masked_2.png', 'pixel_soulmate_masked_3.png'];
 
   function preloadFrames(urls) {
     return urls.map(url => {
@@ -46,10 +44,8 @@
   }
 
   const boyIdleImgs = preloadFrames(boyIdleFrames);
-  const boyMaskedImgs = preloadFrames(boyMaskedFrames);
   const boyCryingImgs = preloadFrames(boyCryingFrames);
   const soulmateIdleImgs = preloadFrames(soulmateIdleFrames);
-  const soulmateMaskedImgs = preloadFrames(soulmateMaskedFrames);
 
   const frameWidth = 40;
   const frameHeight = 60;
@@ -57,14 +53,49 @@
   const scaledWidth = frameWidth * scale;
   const scaledHeight = frameHeight * scale;
 
-  let currentFrame = 0;
-  let frameTimer = 0;
-  let frameDuration = 24;
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
 
-  let boyX = 250;
-  let soulmateX = 250 + scaledWidth + 20;
+  const bgImg = new Image();
+  bgImg.src = 'pixel_hk.png'; // tiled background placeholder
 
-  let moveSpeed = 2;
+  let worldOffsetX = 0;
+  const scrollSpeed = 5;
+
+  const boyScreenX = 200;
+  const soulmateScreenX = boyScreenX + scaledWidth + 20;
+  const charScreenY = 120;
+
+  let animationFrame = 0;
+  let animationTimer = 0;
+  const animationSpeed = 12;
+
+  let movingLeft = false;
+  let movingRight = false;
+
+  const storyMilestones = [
+    { x: 0, text: "The boy starts the year filled with hope.", soulmateVisible: true },
+    { x: 150, text: "In August 2011 they start dating officially.", soulmateVisible: true },
+    { x: 300, text: "Separated August to December 2011.", soulmateVisible: false },
+    { x: 450, text: "Reunited after December 2011.", soulmateVisible: true },
+    { x: 600, text: "Friends grow closer, hearts grow fonder.", soulmateVisible: true },
+    { x: 900, text: "Love deepens over time.", soulmateVisible: true },
+    { x: 1200, text: "Preparing for a joyful future.", soulmateVisible: true },
+    { x: 1500, text: "Wedding day surrounded by love.", soulmateVisible: true },
+    { x: 1800, text: "Life brings many adventures.", soulmateVisible: true },
+    { x: 2100, text: "Cherished moments together.", soulmateVisible: true },
+    { x: 2400, text: "Overcoming challenges with strength.", soulmateVisible: true },
+    { x: 2700, text: "Tough times in September 2019.", soulmateVisible: false },
+    { x: 3000, text: "Reunited after November 2019.", soulmateVisible: true },
+    { x: 3300, text: "A world changed, faces masked.", soulmateVisible: true },
+    { x: 3600, text: "Hope grows anew.", soulmateVisible: true },
+    { x: 3900, text: "New beginnings in a new home.", soulmateVisible: true },
+    { x: 4200, text: "Dreams and doubts meet.", soulmateVisible: true },
+    { x: 4500, text: "Uncertainty looms.", soulmateVisible: true },
+    { x: 4800, text: "August 2025 - Marriage at crossroads.", soulmateVisible: false },
+    { x: 5100, text: "Reunited after August 2025.", soulmateVisible: true },
+    { x: 5400, text: "Ending story.", soulmateVisible: true },
+  ];
 
   const GamePhase = {
     Story: 0,
@@ -74,447 +105,168 @@
     End: 4,
   };
 
-  let currentYearIndex = 0;
-  let currentFrameIndex = 0;
   let gamePhase = GamePhase.Story;
-
   let playerChoice = null;
 
-  let slowedDown = false;
-
-  // All city backgrounds to be used in afterChoiceYes in order before Earth
-  const afterChoiceYesFrames = [
-    { backgroundColor: '#f5f0e6', text: "Budapest: A new journey begins.", bgImageSrc: 'pixel_budapest.png' },
-    { backgroundColor: '#d0d7de', text: "Prague: Exploring ancient streets.", bgImageSrc: 'pixel_prague.png' },
-    { backgroundColor: '#f0e68c', text: "India: A land of colors and wonders.", bgImageSrc: 'pixel_india.png' },
-    { backgroundColor: '#f0e68c', text: "Mexico: The land of tacos.", bgImageSrc: 'pixel_mexico.png' },
-    { backgroundColor: '#add8e6', text: "Seoul: Embracing new horizons.", bgImageSrc: 'pixel_seoul.png' },
-    { backgroundColor: '#add8e6', text: "Berlin: Reminiscing moments.", bgImageSrc: 'pixel_berlin.png' },
-    { backgroundColor: '#add8e6', text: "Taipei: Heartfelt memories.", bgImageSrc: 'pixel_taipei.png' },
-    { backgroundColor: '#add8e6', text: "Zurich: Comfort and peace.", bgImageSrc: 'pixel_zurich.png' },
-    { backgroundColor: '#add8e6', text: "Paris: Timeless love.", bgImageSrc: 'pixel_paris.png' },
-    { backgroundColor: '#add8e6', text: "Beijing: Strength through challenges.", bgImageSrc: 'pixel_beijing.png' },
-    { backgroundColor: '#add8e6', text: "Osaka: Resilience remains.", bgImageSrc: 'pixel_osaka.png' },
-    { backgroundColor: '#add8e6', text: "Tokyo: Never giving up.", bgImageSrc: 'pixel_tokyo.png' },
-    { backgroundColor: '#add8e6', text: "Hong Kong: Home forever.", bgImageSrc: 'pixel_hk.png' },
-    { backgroundColor: '#add8e6', text: "Earth: Infinite adventures around the globe.", bgImageSrc: 'pixel_earth.png' }
-  ];
-
-  // Story backgrounds - fixed per year: 2011 uses SF, others use HK per your request
-  const storyByYear = [
-    {
-      year: 2011,
-      frames: [
-        { text: "The boy starts the year filled with hope.", bgImageSrc: 'pixel_sf.png' },
-        { text: "In August, they start dating officially.", bgImageSrc: 'pixel_sf.png' },
-        { text: "Separated by distance, alone in San Francisco.", bgImageSrc: 'pixel_sf.png' },
-        { text: "Reunited at the end of the year in Hong Kong.", bgImageSrc: 'pixel_sf.png' },
-      ],
-    },
-    {
-      year: 2012,
-      frames: [
-        { text: "Friends grow closer, hearts grow fonder.", bgImageSrc: 'pixel_hk.png' },
-        { text: "New memories in new places.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2013,
-      frames: [
-        { text: "Love deepens over time.", bgImageSrc: 'pixel_hk.png' },
-        { text: "A special proposal moment.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2014,
-      frames: [
-        { text: "Preparing for a joyful future.", bgImageSrc: 'pixel_hk.png' },
-        { text: "Sharing dreams and hopes.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2015,
-      frames: [
-        { text: "Wedding day surrounded by love.", bgImageSrc: 'pixel_hk.png' },
-        { text: "A honeymoon to remember.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2016,
-      frames: [
-        { text: "Life brings many adventures.", bgImageSrc: 'pixel_hk.png' },
-        { text: "Memories in different cities.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2017,
-      frames: [
-        { text: "Cherished moments together.", bgImageSrc: 'pixel_hk.png' },
-        { text: "Finding comfort in Zurich.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2018,
-      frames: [
-        { text: "Overcoming challenges with strength.", bgImageSrc: 'pixel_hk.png' },
-        { text: "Creating new memories.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2019,
-      frames: [
-        { text: "Tough times in September.", bgImageSrc: 'pixel_hk.png' },
-        { text: "Still standing strong.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2020,
-      frames: [
-        { text: "A world changed, faces masked.", bgImageSrc: 'pixel_hk.png' },
-        { text: "Staying safe together.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2021,
-      frames: [
-        { text: "Hope grows anew.", bgImageSrc: 'pixel_hk.png' },
-        { text: "Building a future.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2022,
-      frames: [
-        { text: "New beginnings in a new home.", bgImageSrc: 'pixel_hk.png' },
-        { text: "Together against all odds.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2023,
-      frames: [
-        { text: "Dreams and doubts meet.", bgImageSrc: 'pixel_hk.png' },
-        { text: "Facing crossroads.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2024,
-      frames: [
-        { text: "Uncertainty looms.", bgImageSrc: 'pixel_hk.png' },
-        { text: "Love tested again.", bgImageSrc: 'pixel_hk.png' },
-      ],
-    },
-    {
-      year: 2025,
-      frames: [
-        { text: "Marriage stands at a crossroads.", bgImageSrc: 'pixel_hk.png' },
-        { text: "She considers leaving.", bgImageSrc: 'pixel_hk.png' },
-      ],
+  function getCurrentMilestone() {
+    for (let i = storyMilestones.length - 1; i >= 0; i--) {
+      if (worldOffsetX >= storyMilestones[i].x) return i;
     }
-  ];
-
-  // Cache for any bg images (mostly for afterChoiceYes)
-  const bgCache = {};
-  function getBgImg(src) {
-    if (!src) return null;
-    if (!bgCache[src]) {
-      let img = new Image();
-      img.src = src;
-      bgCache[src] = img;
-    }
-    return bgCache[src];
+    return 0;
   }
 
-  function isSoulmatePresent(year, frameIdx) {
-    if (year < 2011) return false;
-    if (year === 2011 && frameIdx < 1) return false;
-    return true;
+  function currentSoulmateVisible() {
+    const index = getCurrentMilestone();
+    // Soulmate invisible during choice phase as well
+    if (gamePhase === GamePhase.Choice || gamePhase === GamePhase.AfterChoiceNo) return false;
+    if (gamePhase === GamePhase.AfterChoiceYes) return true; // soulmate back after YES
+    return storyMilestones[index].soulmateVisible;
   }
 
-  function isMaskedPeriod(year) {
-    return year >= 2020 && year <= 2022;
+  function currentStoryText() {
+    const index = getCurrentMilestone();
+    return storyMilestones[index].text;
   }
 
   function updateAnimation() {
-    if (gamePhase !== GamePhase.Choice && gamePhase !== GamePhase.AfterChoiceNo) {
-      frameTimer++;
-      if (frameTimer >= frameDuration) {
-        frameTimer = 0;
-        currentFrame = (currentFrame + 1) % 3;
-      }
+    animationTimer++;
+    if (animationTimer >= animationSpeed) {
+      animationTimer = 0;
+      animationFrame = (animationFrame + 1) % boyIdleImgs.length;
     }
   }
 
-  function updatePositions() {
-    // Characters are fixed horizontally for consistent visuals
-  }
-
-  function drawCharacter(imgArr, frame, x, y) {
-    if (!imgArr.length) return;
-    const img = imgArr[frame];
+  function drawCharacter(imgArray, x, y, frame) {
+    if (!imgArray.length) return;
+    const img = imgArray[frame];
     if (img.complete) {
       ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
     }
   }
 
-  function drawBackground(bgSrc) {
-    const img = getBgImg(bgSrc);
-    if (img && img.complete) {
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  function gameLoop() {
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    if (gamePhase === GamePhase.Story) {
+      if (movingLeft) {
+        worldOffsetX = Math.min(worldOffsetX + scrollSpeed, 0);
+      }
+      if (movingRight) {
+        const maxRight = - (bgImg.width * 3 - canvasWidth);
+        worldOffsetX = Math.max(worldOffsetX - scrollSpeed, maxRight);
+      }
+    }
+
+    if (bgImg.complete) {
+      // Tile bg horizontally for scrolling with placeholder image
+      for(let i = -Math.floor((-worldOffsetX)/bgImg.width)-1; i <= Math.ceil(canvasWidth/bgImg.width); i++) {
+        ctx.drawImage(bgImg, i*bgImg.width + worldOffsetX, 0, bgImg.width, canvasHeight);
+      }
     } else {
       ctx.fillStyle = '#111';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
-  }
-
-  function renderStoryFrame() {
-    const currentYear = storyByYear[currentYearIndex];
-    const frame = currentYear.frames[currentFrameIndex];
-
-    // Use the frame's bgImageSrc if available else fixed HK background for story
-    const bgToDraw = frame.bgImageSrc ? frame.bgImageSrc : 'pixel_hk.png';
-    drawBackground(bgToDraw);
-
-    ctx.fillStyle = '#39ff14';
-    ctx.font = '26px monospace';
-    ctx.shadowColor = '#39ff14';
-    ctx.shadowBlur = 12;
-    ctx.fillText(frame.text, 20, 70);
-    ctx.fillText(`Year: ${currentYear.year}`, canvas.width - 180, 70);
-    ctx.shadowBlur = 0;
-
-    updatePositions();
-
-    const soulmatePresent = isSoulmatePresent(currentYear.year, currentFrameIndex);
-    const masked = isMaskedPeriod(currentYear.year);
-
-    if (!soulmatePresent) {
-      if (masked) {
-        drawCharacter(boyMaskedImgs, currentFrame, boyX, 120);
-      } else {
-        drawCharacter(boyCryingImgs, currentFrame, boyX, 120);
-      }
-    } else {
-      if (masked) {
-        drawCharacter(boyMaskedImgs, currentFrame, boyX, 120);
-        drawCharacter(soulmateMaskedImgs, currentFrame, soulmateX, 120);
-      } else {
-        drawCharacter(boyIdleImgs, currentFrame, boyX, 120);
-        drawCharacter(soulmateIdleImgs, currentFrame, soulmateX, 120);
-      }
-    }
-  }
-
-  function nextStoryFrame() {
-    currentFrameIndex++;
-    const yearData = storyByYear[currentYearIndex];
-    if (currentFrameIndex >= yearData.frames.length) {
-      currentFrameIndex = 0;
-      currentYearIndex++;
-      if (currentYearIndex >= storyByYear.length) {
-        gamePhase = GamePhase.Choice;
-        currentYearIndex = storyByYear.length - 1;
-        currentFrameIndex = yearData.frames.length - 1;
-      }
-    }
-  }
-
-  // Choice buttons for tapping
-  const buttonWidth = 100;
-  const buttonHeight = 50;
-  const yesButtonX = 200;
-  const noButtonX = 500;
-  const buttonsY = 200;
-
-  function drawChoiceButtons() {
-    ctx.fillStyle = '#39ff14';
-    ctx.fillRect(yesButtonX, buttonsY, buttonWidth, buttonHeight);
-    ctx.fillStyle = '#000';
-    ctx.font = '24px monospace';
-    ctx.fillText('YES', yesButtonX + 30, buttonsY + 33);
-
-    ctx.fillStyle = '#f33914';
-    ctx.fillRect(noButtonX, buttonsY, buttonWidth, buttonHeight);
-    ctx.fillStyle = '#000';
-    ctx.font = '24px monospace';
-    ctx.fillText('NO', noButtonX + 35, buttonsY + 33);
-  }
-
-  function showChoicePrompt() {
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
-    ctx.fillRect(0, 120, canvas.width, 80);
-    ctx.fillStyle = '#39ff14';
-    ctx.font = '24px monospace';
-    ctx.fillText("Should the soulmate return? Tap YES or NO.", 20, 170);
-    drawChoiceButtons();
-  }
-
-  function sendPlayerChoice(choice) {
-    GameAnalytics("addDesignEvent", `player_choice:${choice}`);
-    console.log(`Logged choice: ${choice}`);
-  }
-
-  let afterChoiceYesIndex = 0;
-  let afterChoiceYesTimer = 0;
-
-  function renderAfterChoiceYes() {
-    // Use the extended afterChoiceYesFrames city sequence
-    const frame = afterChoiceYesFrames[afterChoiceYesIndex];
-    drawBackground(frame.bgImageSrc);
-
-    ctx.fillStyle = '#39ff14';
-    ctx.font = '28px monospace';
-    ctx.shadowColor = '#39ff14';
-    ctx.shadowBlur = 12;
-    ctx.fillText(frame.text, 20, 70);
-    ctx.shadowBlur = 0;
-
-    // Animate the boy and soulmate close together
-    drawCharacter(boyIdleImgs, currentFrame, boyX, 120);
-    drawCharacter(soulmateIdleImgs, currentFrame, soulmateX, 120);
-
-    // Swipe advances, no auto progress here
-  }
-
-  function renderAfterChoiceNo() {
-    if (!slowedDown) {
-      frameDuration *= 2;
-      moveSpeed /= 2;
-      slowedDown = true;
-    }
-
-    drawBackground('pixel_hk.png');
-
-    // Boy alone, fixed frame 0
-    drawCharacter(boyCryingImgs, 0, boyX, 120);
-
-    ctx.fillStyle = 'white';
-    ctx.font = '28px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText("She left... The story ends here.", canvas.width / 2, canvas.height / 2);
-  }
-
-  function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     updateAnimation();
 
-    if (gamePhase === GamePhase.Story) {
-      renderStoryFrame();
-    } else if (gamePhase === GamePhase.Choice) {
-      renderStoryFrame();
-      showChoicePrompt();
-    } else if (gamePhase === GamePhase.AfterChoiceYes) {
-      renderAfterChoiceYes();
-    } else if (gamePhase === GamePhase.AfterChoiceNo) {
-      renderAfterChoiceNo();
-    } else if (gamePhase === GamePhase.End) {
+    // Draw story text
+    ctx.fillStyle = '#39ff14';
+    ctx.font = '28px monospace';
+    ctx.shadowColor = '#39ff14';
+    ctx.shadowBlur = 10;
+    ctx.fillText(currentStoryText(), 20, 70);
+    ctx.shadowBlur = 0;
+
+    // Draw boy
+    if (currentSoulmateVisible()) {
+      drawCharacter(boyIdleImgs, boyScreenX, charScreenY, animationFrame);
+      drawCharacter(soulmateIdleImgs, soulmateScreenX, charScreenY, animationFrame);
+    } else {
+      drawCharacter(boyCryingImgs, boyScreenX, charScreenY, animationFrame);
+    }
+
+    if (getCurrentMilestone() === storyMilestones.length - 1 && gamePhase === GamePhase.Story) {
+      gamePhase = GamePhase.Choice;
+    }
+
+    if (gamePhase === GamePhase.Choice) {
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
       ctx.fillStyle = '#39ff14';
-      ctx.font = '30px monospace';
+      ctx.font = '36px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('The End', canvas.width / 2, canvas.height / 2);
+      ctx.fillText("Should the soulmate return?", canvasWidth/2, canvasHeight/2 - 40);
+
+      drawButton(canvasWidth/2 - 140, canvasHeight/2, 120, 60, '#39ff14', '#000', 'YES');
+      drawButton(canvasWidth/2 + 20, canvasHeight/2, 120, 60, '#f33914', '#000', 'NO');
+    }
+
+    if (gamePhase === GamePhase.AfterChoiceYes) {
+      // Soulmate is back, boy no longer crying
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.fillStyle = '#39ff14';
+      ctx.font = '36px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText("You chose YES. Soulmate is back.", canvasWidth/2, canvasHeight/2);
+    }
+
+    if (gamePhase === GamePhase.AfterChoiceNo) {
+      // Boy crying alone, soulmate gone
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.fillStyle = '#39ff14';
+      ctx.font = '36px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText("You chose NO. Soulmate left.", canvasWidth/2, canvasHeight/2);
+      drawCharacter(boyCryingImgs, boyScreenX, charScreenY, animationFrame);
     }
 
     requestAnimationFrame(gameLoop);
   }
 
-  // Swipe detection for advancing frames
-  let touchStartX = null;
-  let touchEndX = null;
-  const swipeThreshold = 50;
+  function drawButton(x, y, w, h, fill, textColor, text) {
+    ctx.fillStyle = fill;
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = textColor;
+    ctx.font = '28px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + w/2, y + h/2);
+  }
 
-  canvas.addEventListener('touchstart', e => {
-    if (gamePhase === GamePhase.Story || gamePhase === GamePhase.AfterChoiceYes) {
-      touchStartX = e.changedTouches[0].screenX;
+  function isInsideRect(px, py, rx, ry, rw, rh) {
+    return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
+  }
+
+  window.addEventListener('keydown', e => {
+    if (gamePhase === GamePhase.Story) {
+      if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') movingLeft = true;
+      if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') movingRight = true;
+    }
+  });
+  window.addEventListener('keyup', e => {
+    if (gamePhase === GamePhase.Story) {
+      if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') movingLeft = false;
+      if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') movingRight = false;
     }
   });
 
-  canvas.addEventListener('touchend', e => {
-    if (gamePhase === GamePhase.Story || gamePhase === GamePhase.AfterChoiceYes) {
-      touchEndX = e.changedTouches[0].screenX;
-      const distX = touchEndX - touchStartX;
-      if (Math.abs(distX) > swipeThreshold && distX < 0) { // left swipe
-        if (gamePhase === GamePhase.Story) {
-          nextStoryFrame();
-        } else if (gamePhase === GamePhase.AfterChoiceYes) {
-          afterChoiceYesIndex++;
-          if (afterChoiceYesIndex >= afterChoiceYesFrames.length) {
-            gamePhase = GamePhase.End;
-          }
-        }
-      }
-      touchStartX = null;
-      touchEndX = null;
-    }
-  });
-
-  // Mouse drag swipe simulation for desktop
-  let mouseDownX = null;
-  let isMouseDown = false;
-
-  canvas.addEventListener('mousedown', e => {
-    if (gamePhase === GamePhase.Story || gamePhase === GamePhase.AfterChoiceYes) {
-      mouseDownX = e.screenX;
-      isMouseDown = true;
-    }
-  });
-
-  canvas.addEventListener('mouseup', e => {
-    if ((gamePhase === GamePhase.Story || gamePhase === GamePhase.AfterChoiceYes) && isMouseDown) {
-      isMouseDown = false;
-      const distX = e.screenX - mouseDownX;
-      if (Math.abs(distX) > swipeThreshold && distX < 0) {
-        if (gamePhase === GamePhase.Story) {
-          nextStoryFrame();
-        } else if (gamePhase === GamePhase.AfterChoiceYes) {
-          afterChoiceYesIndex++;
-          if (afterChoiceYesIndex >= afterChoiceYesFrames.length) {
-            gamePhase = GamePhase.End;
-          }
-        }
-      }
-      mouseDownX = null;
-    }
-  });
-
-  // Tap/click YES/NO buttons
   canvas.addEventListener('click', e => {
     if (gamePhase !== GamePhase.Choice) return;
+
     const rect = canvas.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
-    if (
-      clickX >= 200 && clickX <= 300 &&
-      clickY >= 200 && clickY <= 250
-    ) {
+    if (isInsideRect(clickX, clickY, canvasWidth/2 - 140, canvasHeight/2, 120, 60)) {
       playerChoice = 'yes';
-      sendPlayerChoice('yes');
+      GameAnalytics("addDesignEvent", `player_choice:yes`);
       gamePhase = GamePhase.AfterChoiceYes;
-      afterChoiceYesIndex = 0;
-      afterChoiceYesTimer = 0;
-    } else if (
-      clickX >= 500 && clickX <= 600 &&
-      clickY >= 200 && clickY <= 250
-    ) {
+    } else if (isInsideRect(clickX, clickY, canvasWidth/2 + 20, canvasHeight/2, 120, 60)) {
       playerChoice = 'no';
-      sendPlayerChoice('no');
+      GameAnalytics("addDesignEvent", `player_choice:no`);
       gamePhase = GamePhase.AfterChoiceNo;
-    }
-  });
-
-  // Keyboard choice support
-  window.addEventListener('keydown', e => {
-    if (gamePhase === GamePhase.Choice) {
-      if (e.key.toLowerCase() === 'y') {
-        playerChoice = 'yes';
-        sendPlayerChoice('yes');
-        gamePhase = GamePhase.AfterChoiceYes;
-        afterChoiceYesIndex = 0;
-        afterChoiceYesTimer = 0;
-      } else if (e.key.toLowerCase() === 'n') {
-        playerChoice = 'no';
-        sendPlayerChoice('no');
-        gamePhase = GamePhase.AfterChoiceNo;
-      }
     }
   });
 
@@ -524,3 +276,4 @@
 
 </body>
 </html>
+
