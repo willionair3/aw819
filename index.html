@@ -304,18 +304,18 @@
         }
 
         function trackUserChoice(choice) {
-  console.log("Tracking choice:", choice);
-  if (window.GameAnalytics) {
-    try {
-      GameAnalytics("addDesignEvent", "choice." + choice);
-      console.log("Event sent for choice", choice);
-    } catch (e) {
-      console.error("GameAnalytics event error:", e);
-    }
-  } else {
-    console.warn("GameAnalytics not initialized yet");
-  }
-}
+            console.log("Tracking choice:", choice);
+            if (window.GameAnalytics) {
+                try {
+                    GameAnalytics("addDesignEvent", "choice." + choice);
+                    console.log("Event sent for choice", choice);
+                } catch (e) {
+                    console.error("GameAnalytics event error:", e);
+                }
+            } else {
+                console.warn("GameAnalytics not initialized yet");
+            }
+        }
 
         function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
             const words = text.split(' ');
@@ -604,8 +604,6 @@
                 }
             }
         });
-
-
 
         requestAnimationFrame(gameLoop);
     </script>
