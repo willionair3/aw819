@@ -24,6 +24,37 @@
 
     <canvas id="gameCanvas" width="800" height="400"></canvas>
 
+    <!-- GameAnalytics SDK -->
+    <script>
+        (function (w, d, s, u) {
+            w['GameAnalytics'] = w['GameAnalytics'] || function () {
+                (w['GameAnalytics'].q = w['GameAnalytics'].q || []).push(arguments)
+            };
+            var ga = d.createElement(s), m = d.getElementsByTagName(s)[0];
+            ga.async = 1;
+            ga.src = u;
+            m.parentNode.insertBefore(ga, m);
+
+            // Initialize after SDK loaded
+            ga.onload = function () {
+                GameAnalytics("setEnabledInfoLog", true);
+                GameAnalytics("initialize", "74d3259c304d64ec6ad15574eb975019", "d9212b3ec2f73ae0648888f637774c1b8b455bcf");
+                console.log("GameAnalytics initialized");
+            };
+
+            // Fallback if onload doesn't fire reliably
+            ga.onreadystatechange = function () {
+                if (this.readyState === 'complete') {
+                    GameAnalytics("setEnabledInfoLog", true);
+                    GameAnalytics("initialize", "74d3259c304d64ec6ad15574eb975019", "d9212b3ec2f73ae0648888f637774c1b8b455bcf");
+                    console.log("GameAnalytics initialized (onreadystatechange)");
+                }
+            };
+
+        })(window, document, 'script', 'https://download.gameanalytics.com/js/GameAnalytics.latest.min.js');
+    </script>
+
+
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -271,6 +302,20 @@
             const neededRepeats = Math.ceil(totalWidthNeeded / bgImg.width);
             return -(bgImg.width * neededRepeats - canvas.width);
         }
+
+        function trackUserChoice(choice) {
+  console.log("Tracking choice:", choice);
+  if (window.GameAnalytics) {
+    try {
+      GameAnalytics("addDesignEvent", "choice." + choice);
+      console.log("Event sent for choice", choice);
+    } catch (e) {
+      console.error("GameAnalytics event error:", e);
+    }
+  } else {
+    console.warn("GameAnalytics not initialized yet");
+  }
+}
 
         function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
             const words = text.split(' ');
@@ -545,8 +590,8 @@
                     gamePhase = GamePhase.AfterChoiceYes;
                     afterChoiceWorldOffsetX = 0;
                     movingLeft = false;
+                    trackUserChoice(`player_choice:yes`);
                     movingRight = false;
-                    console.log('User choice tracked: yes');
                 }
                 // NO button box
                 else if (clickX >= canvas.width / 2 + 20 &&
@@ -554,8 +599,8 @@
                     clickY >= canvas.height - 100 &&
                     clickY <= canvas.height - 40) {
                     playerChoice = 'no';
+                    trackUserChoice(`player_choice:no`);
                     gamePhase = GamePhase.AfterChoiceNo;
-                    console.log('User choice tracked: no');
                 }
             }
         });
