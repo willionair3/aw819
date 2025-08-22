@@ -56,8 +56,11 @@
   const canvasWidth = canvas.width;
   const canvasHeight = canvas.height;
 
-  const bgImg = new Image();
-  bgImg.src = 'pixel_hk.png'; // tiled background placeholder
+  // Background images for 2011 and other years
+  const bg_sf = new Image();
+  bg_sf.src = 'pixel_sf.png';
+  const bg_hk = new Image();
+  bg_hk.src = 'pixel_hk.png';
 
   let worldOffsetX = 0;
   const scrollSpeed = 5;
@@ -73,28 +76,30 @@
   let movingLeft = false;
   let movingRight = false;
 
+  // Story and soulmate visibility timeline — pixel-based scroll positions:
+  // Includes which background to use per state, soulmate visible or not
   const storyMilestones = [
-    { x: 0, text: "The boy starts the year filled with hope.", soulmateVisible: true },
-    { x: 150, text: "In August 2011 they start dating officially.", soulmateVisible: true },
-    { x: 300, text: "Separated August to December 2011.", soulmateVisible: false },
-    { x: 450, text: "Reunited after December 2011.", soulmateVisible: true },
-    { x: 600, text: "Friends grow closer, hearts grow fonder.", soulmateVisible: true },
-    { x: 900, text: "Love deepens over time.", soulmateVisible: true },
-    { x: 1200, text: "Preparing for a joyful future.", soulmateVisible: true },
-    { x: 1500, text: "Wedding day surrounded by love.", soulmateVisible: true },
-    { x: 1800, text: "Life brings many adventures.", soulmateVisible: true },
-    { x: 2100, text: "Cherished moments together.", soulmateVisible: true },
-    { x: 2400, text: "Overcoming challenges with strength.", soulmateVisible: true },
-    { x: 2700, text: "Tough times in September 2019.", soulmateVisible: false },
-    { x: 3000, text: "Reunited after November 2019.", soulmateVisible: true },
-    { x: 3300, text: "A world changed, faces masked.", soulmateVisible: true },
-    { x: 3600, text: "Hope grows anew.", soulmateVisible: true },
-    { x: 3900, text: "New beginnings in a new home.", soulmateVisible: true },
-    { x: 4200, text: "Dreams and doubts meet.", soulmateVisible: true },
-    { x: 4500, text: "Uncertainty looms.", soulmateVisible: true },
-    { x: 4800, text: "August 2025 - Marriage at crossroads.", soulmateVisible: false },
-    { x: 5100, text: "Reunited after August 2025.", soulmateVisible: true },
-    { x: 5400, text: "Ending story.", soulmateVisible: true },
+    { x: 0, text: "The boy starts the year filled with hope.", soulmateVisible: true, bg: 'sf' },
+    { x: 150, text: "In August 2011 they start dating officially.", soulmateVisible: true, bg: 'sf' },
+    { x: 300, text: "Separated August to December 2011.", soulmateVisible: false, bg: 'sf' },
+    { x: 450, text: "Reunited after December 2011.", soulmateVisible: true, bg: 'hk' },
+    { x: 600, text: "Friends grow closer, hearts grow fonder.", soulmateVisible: true, bg: 'hk' },
+    { x: 900, text: "Love deepens over time.", soulmateVisible: true, bg: 'hk' },
+    { x: 1200, text: "Preparing for a joyful future.", soulmateVisible: true, bg: 'hk' },
+    { x: 1500, text: "Wedding day surrounded by love.", soulmateVisible: true, bg: 'hk' },
+    { x: 1800, text: "Life brings many adventures.", soulmateVisible: true, bg: 'hk' },
+    { x: 2100, text: "Cherished moments together.", soulmateVisible: true, bg: 'hk' },
+    { x: 2400, text: "Overcoming challenges with strength.", soulmateVisible: true, bg: 'hk' },
+    { x: 2700, text: "Tough times in September 2019.", soulmateVisible: false, bg: 'hk' },
+    { x: 3000, text: "Reunited after November 2019.", soulmateVisible: true, bg: 'hk' },
+    { x: 3300, text: "A world changed, faces masked.", soulmateVisible: true, bg: 'hk' },
+    { x: 3600, text: "Hope grows anew.", soulmateVisible: true, bg: 'hk' },
+    { x: 3900, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk' },
+    { x: 4200, text: "Dreams and doubts meet.", soulmateVisible: true, bg: 'hk' },
+    { x: 4500, text: "Uncertainty looms.", soulmateVisible: true, bg: 'hk' },
+    { x: 4800, text: "August 2025 - Marriage at crossroads.", soulmateVisible: false, bg: 'hk' },
+    { x: 5100, text: "Reunited after August 2025.", soulmateVisible: true, bg: 'hk' },
+    { x: 5400, text: "Ending story.", soulmateVisible: true, bg: 'hk' },
   ];
 
   const GamePhase = {
@@ -116,11 +121,17 @@
   }
 
   function currentSoulmateVisible() {
-    const index = getCurrentMilestone();
-    // Soulmate invisible during choice phase as well
     if (gamePhase === GamePhase.Choice || gamePhase === GamePhase.AfterChoiceNo) return false;
-    if (gamePhase === GamePhase.AfterChoiceYes) return true; // soulmate back after YES
+    if (gamePhase === GamePhase.AfterChoiceYes) return true;
+    const index = getCurrentMilestone();
     return storyMilestones[index].soulmateVisible;
+  }
+
+  function currentBgImage(){
+    const index = getCurrentMilestone();
+    const bgType = storyMilestones[index].bg;
+    if(bgType === 'sf') return bg_sf;
+    return bg_hk;
   }
 
   function currentStoryText() {
@@ -152,13 +163,14 @@
         worldOffsetX = Math.min(worldOffsetX + scrollSpeed, 0);
       }
       if (movingRight) {
-        const maxRight = - (bgImg.width * 3 - canvasWidth);
+        const maxRight = - (currentBgImage().width * 3 - canvasWidth);
         worldOffsetX = Math.max(worldOffsetX - scrollSpeed, maxRight);
       }
     }
 
+    // Draw background – tiling current background horizontally
+    const bgImg = currentBgImage();
     if (bgImg.complete) {
-      // Tile bg horizontally for scrolling with placeholder image
       for(let i = -Math.floor((-worldOffsetX)/bgImg.width)-1; i <= Math.ceil(canvasWidth/bgImg.width); i++) {
         ctx.drawImage(bgImg, i*bgImg.width + worldOffsetX, 0, bgImg.width, canvasHeight);
       }
@@ -177,7 +189,7 @@
     ctx.fillText(currentStoryText(), 20, 70);
     ctx.shadowBlur = 0;
 
-    // Draw boy
+    // Draw boy and soulmate or crying boy depending on soulmate visibility
     if (currentSoulmateVisible()) {
       drawCharacter(boyIdleImgs, boyScreenX, charScreenY, animationFrame);
       drawCharacter(soulmateIdleImgs, soulmateScreenX, charScreenY, animationFrame);
@@ -195,36 +207,39 @@
       ctx.fillStyle = '#39ff14';
       ctx.font = '36px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText("Should the soulmate return?", canvasWidth/2, canvasHeight/2 - 40);
+      ctx.fillText("Should the soulmate return?", canvasWidth / 2, canvasHeight / 2 - 40);
 
-      drawButton(canvasWidth/2 - 140, canvasHeight/2, 120, 60, '#39ff14', '#000', 'YES');
-      drawButton(canvasWidth/2 + 20, canvasHeight/2, 120, 60, '#f33914', '#000', 'NO');
+      drawButton(canvasWidth / 2 - 140, canvasHeight / 2, 120, 60, '#39ff14', '#000', 'YES');
+      drawButton(canvasWidth / 2 + 20, canvasHeight / 2, 120, 60, '#f33914', '#000', 'NO');
     }
 
     if (gamePhase === GamePhase.AfterChoiceYes) {
-      // Soulmate is back, boy no longer crying
       ctx.fillStyle = 'rgba(0,0,0,0.6)';
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
       ctx.fillStyle = '#39ff14';
       ctx.font = '36px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText("You chose YES. Soulmate is back.", canvasWidth/2, canvasHeight/2);
+      ctx.fillText("You chose YES. Soulmate is back.", canvasWidth / 2, canvasHeight / 2);
+
+      // Draw boy and soulmate both visible
+      drawCharacter(boyIdleImgs, boyScreenX, charScreenY, animationFrame);
+      drawCharacter(soulmateIdleImgs, soulmateScreenX, charScreenY, animationFrame);
     }
 
     if (gamePhase === GamePhase.AfterChoiceNo) {
-      // Boy crying alone, soulmate gone
       ctx.fillStyle = 'rgba(0,0,0,0.6)';
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
       ctx.fillStyle = '#39ff14';
       ctx.font = '36px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText("You chose NO. Soulmate left.", canvasWidth/2, canvasHeight/2);
+      ctx.fillText("You chose NO. Soulmate left.", canvasWidth / 2, canvasHeight / 2);
       drawCharacter(boyCryingImgs, boyScreenX, charScreenY, animationFrame);
     }
 
     requestAnimationFrame(gameLoop);
   }
 
+  // Draw button helper
   function drawButton(x, y, w, h, fill, textColor, text) {
     ctx.fillStyle = fill;
     ctx.fillRect(x, y, w, h);
@@ -232,13 +247,10 @@
     ctx.font = '28px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(text, x + w/2, y + h/2);
+    ctx.fillText(text, x + w / 2, y + h / 2);
   }
 
-  function isInsideRect(px, py, rx, ry, rw, rh) {
-    return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
-  }
-
+  // Keyboard movement
   window.addEventListener('keydown', e => {
     if (gamePhase === GamePhase.Story) {
       if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') movingLeft = true;
@@ -252,28 +264,58 @@
     }
   });
 
+  // Mobile touch controls for left/right movement
+  let touchStartX = null;
+  canvas.addEventListener('touchstart', e => {
+    if (gamePhase === GamePhase.Story) {
+      touchStartX = e.touches[0].clientX;
+    }
+  });
+
+  canvas.addEventListener('touchmove', e => {
+    if (touchStartX === null) return;
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - touchStartX;
+
+    if (diff > 10) {
+      movingLeft = true;
+      movingRight = false;
+    } else if (diff < -10) {
+      movingRight = true;
+      movingLeft = false;
+    }
+  });
+
+  canvas.addEventListener('touchend', e => {
+    movingLeft = false;
+    movingRight = false;
+    touchStartX = null;
+  });
+
+  // Click/tap choice buttons
   canvas.addEventListener('click', e => {
     if (gamePhase !== GamePhase.Choice) return;
-
     const rect = canvas.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
-    if (isInsideRect(clickX, clickY, canvasWidth/2 - 140, canvasHeight/2, 120, 60)) {
+    if (clickX >= canvasWidth / 2 - 140 && clickX <= canvasWidth / 2 - 20 &&
+        clickY >= canvasHeight / 2 && clickY <= canvasHeight / 2 + 60) {
       playerChoice = 'yes';
       GameAnalytics("addDesignEvent", `player_choice:yes`);
       gamePhase = GamePhase.AfterChoiceYes;
-    } else if (isInsideRect(clickX, clickY, canvasWidth/2 + 20, canvasHeight/2, 120, 60)) {
+    } else if (clickX >= canvasWidth / 2 + 20 && clickX <= canvasWidth / 2 + 140 &&
+               clickY >= canvasHeight / 2 && clickY <= canvasHeight / 2 + 60) {
       playerChoice = 'no';
       GameAnalytics("addDesignEvent", `player_choice:no`);
       gamePhase = GamePhase.AfterChoiceNo;
     }
   });
 
+  let movingLeft = false;
+  let movingRight = false;
   gameLoop();
-
 </script>
 
 </body>
 </html>
-
