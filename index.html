@@ -22,7 +22,7 @@
 
 <body>
 
-    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <canvas id="gameCanvas"></canvas>
 
     <!-- GameAnalytics SDK -->
     <script>
@@ -62,11 +62,73 @@
         // Frame dimensions and scale
         const frameWidth = 40;
         const frameHeight = 60;
-        const scale = 4;
-        const scaledWidth = frameWidth * scale;
-        const scaledHeight = frameHeight * scale;
+        let canvasWidth, canvasHeight;
+        let scale;
+        let scaledWidth, scaledHeight;
+
+        function scaledValue(val) {
+            return Math.floor(val * scale);
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            canvasWidth = canvas.width;
+            canvasHeight = canvas.height;
+
+            scale = Math.floor(canvasHeight / 100) || 2;
+            if (scale < 2) scale = 2;
+
+            scaledWidth = frameWidth * scale;
+            scaledHeight = frameHeight * scale;
+        }
+        // Immediately call once:
+        resizeCanvas();
+        // Update on window resize:
+        window.addEventListener('resize', resizeCanvas);
         // === Add near the top with your other globals ===
 
+        const uiScale = Math.min(scale, 4); // cap max scale for UI elements
+
+        function scaledUIButtonValue(val) {
+            return Math.floor(val * uiScale);
+        }
+
+        // Determine button sizes
+        const buttonWidth = scaledUIButtonValue(100);
+        const buttonHeight = scaledUIButtonValue(50);
+        const buttonGap = scaledUIButtonValue(20);
+
+        const padding = scaledUIButtonValue(10); // 10 base pixels scaled
+
+        // Calculate button X positions centered horizontally with some gap
+        const yesButtonX = canvasWidth / 2 - buttonWidth - buttonGap / 2;
+        const noButtonX = canvasWidth / 2 + buttonGap / 2;
+
+        // Ensure yesButtonX >= 0 to avoid left half cut off:
+        const clampedYesButtonX = Math.max(yesButtonX, padding);
+
+        // Ensure buttons don’t overflow right edge:
+        const maxNoButtonX = canvasWidth - buttonWidth - scaledUIButtonValue(10);
+        const clampedNoButtonX = Math.min(noButtonX, canvasWidth - buttonWidth - padding);
+
+        // Y position relative to bottom of canvas
+        const buttonsY = canvasHeight - buttonHeight - scaledUIButtonValue(20);
+        
+        const totalButtonWidth = buttonWidth * 2 + buttonGap;
+        const availableWidth = canvasWidth - scaledUIButtonValue(20); // Left + right padding total
+
+        if (totalButtonWidth > availableWidth) {
+            // reduce buttonWidth, or buttonGap dynamically here
+            buttonWidth = (availableWidth - buttonGap) / 2;
+        }
+
+        console.log('canvasWidth:', canvasWidth, 'buttonWidth:', buttonWidth, 'buttonGap:', buttonGap);
+        console.log('yesButtonX (before clamp):', yesButtonX);
+        console.log('clampedYesButtonX:', clampedYesButtonX);
+        console.log('noButtonX (before clamp):', noButtonX);
+        console.log('clampedNoButtonX:', clampedNoButtonX);
+        
         // === Add these variables for choice screen fade and typing effect ===
         let fadeAlpha = 0;
         const fadeIncrement = 0.02;
@@ -120,27 +182,30 @@
         ];
 
         const storyMilestones = [
-            { x: 0, text: "The boy starts the year filled with hope.", soulmateVisible: true, bg: 'sf' },
-            { x: 150, text: "In August 2011 they start dating officially.", soulmateVisible: true, bg: 'sf' },
-            { x: 300, text: "Separated August to December 2011.", soulmateVisible: false, bg: 'sf' },
-            { x: 450, text: "Reunited after December 2011.", soulmateVisible: true, bg: 'hk' },
-            { x: 600, text: "Friends grow closer, hearts grow fonder.", soulmateVisible: true, bg: 'hk' },
-            { x: 900, text: "Love deepens over time.", soulmateVisible: true, bg: 'hk' },
-            { x: 1200, text: "Preparing for a joyful future.", soulmateVisible: true, bg: 'hk' },
-            { x: 1500, text: "Wedding day surrounded by love.", soulmateVisible: true, bg: 'hk' },
-            { x: 1800, text: "Life brings many adventures.", soulmateVisible: true, bg: 'hk' },
-            { x: 2100, text: "Cherished moments together.", soulmateVisible: true, bg: 'hk' },
-            { x: 2400, text: "Overcoming challenges with strength.", soulmateVisible: true, bg: 'hk' },
-            { x: 2700, text: "Tough times in September 2019.", soulmateVisible: false, bg: 'hk' },
-            { x: 3000, text: "Reunited after November 2019.", soulmateVisible: true, bg: 'hk' },
-            { x: 3300, text: "A world changed, faces masked.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
-            { x: 3600, text: "Hope grows anew.", soulmateVisible: true, bg: 'hk' },
-            { x: 3900, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk' },
-            { x: 4200, text: "Dreams and doubts meet.", soulmateVisible: true, bg: 'hk' },
-            { x: 4500, text: "Uncertainty looms.", soulmateVisible: true, bg: 'hk' },
-            { x: 4800, text: "August 2025 - Marriage at crossroads.", soulmateVisible: false, bg: 'hk' },
-            { x: 5100, text: "Reunited after August 2025.", soulmateVisible: true, bg: 'hk' },
-            { x: 5400, text: "Ending story.", soulmateVisible: true, bg: 'hk' },
+            { x: 0, year: 2011, text: "The boy started the year filled with hope.", soulmateVisible: true, bg: 'sf' },
+            { x: 150, year: 2011, text: "In August, they started dating officially.", soulmateVisible: true, bg: 'sf' },
+            { x: 300, year: 2011, text: "Long Distance...", soulmateVisible: false, bg: 'sf' },
+            { x: 450, year: 2011, text: "Reunited by Xmas.", soulmateVisible: true, bg: 'hk' },
+            { x: 600, year: 2012, text: "Love deepens over time.", soulmateVisible: true, bg: 'hk' },
+            { x: 900, year: 2012, text: "First trip", soulmateVisible: true, bg: 'hk' },
+            { x: 1200, year: 2013, text: "She said YES!!.", soulmateVisible: true, bg: 'hk' },
+            { x: 1500, year: 2014, text: "Preparing for a joyful moment", soulmateVisible: true, bg: 'hk' },
+            { x: 1800, year: 2014, text: "Wedding photoshoot in Verona", soulmateVisible: true, bg: 'hk' },
+            { x: 2100, year: 2015, text: "Wedding day surrounded by love.", soulmateVisible: true, bg: 'hk' },
+            { x: 2400, year: 2015, text: "Moved in together", soulmateVisible: true, bg: 'hk' },
+            { x: 2700, year: 2015, text: "Honeymoon in Positano", soulmateVisible: true, bg: 'hk' },
+            { x: 3000, year: 2016, text: "Life brings many adventures.", soulmateVisible: true, bg: 'hk' },
+            { x: 3300, year: 2017, text: "Cherished moments together.", soulmateVisible: true, bg: 'hk' },
+            { x: 3600, year: 2018, text: "Overcoming challenges with strength.", soulmateVisible: true, bg: 'hk' },
+            { x: 3900, year: 2019, text: "Tough times in September.", soulmateVisible: false, bg: 'hk' },
+            { x: 4200, year: 2019, text: "She came back :)", soulmateVisible: true, bg: 'hk' },
+            { x: 4500, year: 2020, text: "A world changed, faces masked.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: 4800, year: 2021, text: "Hope grows anew.", soulmateVisible: true, bg: 'hk' },
+            { x: 5100, year: 2022, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk' },
+            { x: 5400, year: 2023, text: "First trip since covid", soulmateVisible: true, bg: 'hk' },
+            { x: 5700, year: 2024, text: "Celebrated our big birthdays together", soulmateVisible: true, bg: 'hk' },
+            { x: 6000, year: 2025, text: "Uncertainty looms", soulmateVisible: false, bg: 'hk' },
+            { x: 6300, year: 2025, text: "Marriage at crossroads", soulmateVisible: false, bg: 'hk' },
         ];
 
         const GamePhase = { Story: 0, Choice: 1, AfterChoiceYes: 2, AfterChoiceNo: 3, End: 4 };
@@ -153,9 +218,9 @@
         let afterChoiceWorldOffsetX = 0;
 
         const scrollSpeed = 9;
-        const boyScreenX = 200;
-        const soulmateScreenX = boyScreenX + scaledWidth + 20;
-        const charScreenY = 120;
+        const boyScreenX = canvasWidth / 4;
+        const soulmateScreenX = boyScreenX + scaledWidth + scaledValue(20);
+        const charScreenY = canvasHeight - scaledHeight - scaledValue(20);
 
         let animationFrame = 0;
         let animationTimer = 0;
@@ -218,9 +283,30 @@
         function getCurrentMilestone() {
             const positiveOffset = -worldOffsetX;
             for (let i = storyMilestones.length - 1; i >= 0; i--) {
-                if (positiveOffset >= storyMilestones[i].x) return i;
+                // Multiply milestone x by scale for dynamic world size
+                if (positiveOffset >= storyMilestones[i].x * scale) return i;
             }
             return 0;
+        }
+
+        function getCurrentMilestoneIndex() {
+            const positiveOffset = -worldOffsetX;
+            for (let i = storyMilestones.length - 1; i >= 0; i--) {
+                if (positiveOffset >= storyMilestones[i].x * scale) return i;
+            }
+            return 0;
+        }
+
+        function drawYearOnTopRight(year) {
+            ctx.font = `${Math.floor(canvasHeight * 0.035)}px monospace`;
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'top';
+
+            const x = canvasWidth - scaledValue(10);
+            const y = scaledValue(10);
+
+            ctx.fillText(year.toString(), x, y);
         }
 
         function currentBgImage() {
@@ -242,7 +328,7 @@
             if (gamePhase === GamePhase.AfterChoiceYes) {
                 return afterChoiceYesFrames[afterChoiceYesIndex].text;
             }
-            return storyMilestones[getCurrentMilestone()].text;
+            return storyMilestones[getCurrentMilestone()].year + ' ' + storyMilestones[getCurrentMilestone()].text
         }
 
         // Animation update with frame array tracking and reset on change
@@ -298,10 +384,11 @@
         function getMaxScroll() {
             const bgImg = currentBgImage();
             if (!bgImg || !bgImg.width) return -6000;
-            const totalWidthNeeded = 5400 + canvas.width;
+            const totalWidthNeeded = storyMilestones[storyMilestones.length - 1].x * scale + canvasWidth;
             const neededRepeats = Math.ceil(totalWidthNeeded / bgImg.width);
-            return -(bgImg.width * neededRepeats - canvas.width);
+            return -(bgImg.width * neededRepeats - canvasWidth);
         }
+
 
         function trackUserChoice(choice) {
             console.log("Tracking choice:", choice);
@@ -339,13 +426,15 @@
             }
         }
 
-
         // Draw button helper
         function drawButton(x, y, w, h, fill, textColor, text) {
             ctx.fillStyle = fill;
             ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, w, h);
             ctx.fillStyle = textColor;
-            ctx.font = '28px monospace';
+            ctx.font = `${scaledUIButtonValue(28)}px monospace`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(text, x + w / 2, y + h / 2);
@@ -385,7 +474,7 @@
                 const currentIndex = Math.floor(-afterChoiceWorldOffsetX / afterChoiceFrameWidth);
                 const clampedIndex = Math.min(Math.max(currentIndex, 0), afterChoiceYesFrames.length - 1);
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '20px monospace';
+                ctx.font = `${Math.floor(canvasHeight * 0.035)}px monospace`;
                 ctx.textAlign = 'center';
                 ctx.fillText(afterChoiceYesFrames[clampedIndex].text, canvas.width / 2, 70);
 
@@ -397,8 +486,8 @@
                 // Draw story background repeatedly
                 const bgImg = currentBgImage();
                 if (bgImg.complete) {
-                    const totalWidthNeeded = 5400 + canvas.width;
-                    const repeatCount = Math.ceil(totalWidthNeeded / bgImg.width) + 1;
+                    const totalWorldWidth = storyMilestones[storyMilestones.length - 1].x * scale + canvasWidth;
+                    const repeatCount = Math.ceil(totalWorldWidth / bgImg.width) + 1;
                     for (let i = 0; i < repeatCount; i++) {
                         const x = i * bgImg.width + worldOffsetX;
                         ctx.drawImage(bgImg, x, 0, bgImg.width, canvas.height);
@@ -410,8 +499,10 @@
 
                 updateAnimation();
 
+                const rightMarginForYear = scaledValue(100);
+                const maxStoryTextWidth = canvasWidth - 20 - rightMarginForYear;
                 ctx.fillStyle = '#ffffff';  // white color
-                ctx.font = '20px monospace';  // smaller font size
+                ctx.font = `${Math.floor(canvasHeight * 0.035)}px monospace`;  // smaller font size
                 ctx.shadowBlur = 10;
                 ctx.fillText(currentStoryText(), 20, 70);
                 ctx.shadowBlur = 0;
@@ -427,7 +518,7 @@
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
 
-                    ctx.font = '20px monospace';
+                    ctx.font = `${Math.floor(canvasHeight * 0.035)}px monospace`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'top';
                     ctx.fillStyle = '#ffffff';
@@ -462,14 +553,14 @@
                         }
                     }
 
-                    drawButton(canvas.width / 2 - 140, canvas.height - 100, 120, 60, '#39ff14', '#000', 'YES');
-                    drawButton(canvas.width / 2 + 20, canvas.height - 100, 120, 60, '#f33914', '#000', 'NO');
+                    drawButton(yesButtonX, buttonsY, buttonWidth, buttonHeight, '#39ff14', '#000', 'YES');
+                    drawButton(noButtonX, buttonsY, buttonWidth, buttonHeight, '#f33914', '#000', 'NO');
                 }
                 else if (gamePhase === GamePhase.AfterChoiceNo) {
                     ctx.fillStyle = 'rgba(0,0,0,0.6)';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '20px monospace';
+                    ctx.font = `${Math.floor(canvasHeight * 0.035)}px monospace`;
                     ctx.textAlign = 'center';
                     ctx.fillText('You chose NO. Soulmate left.', canvas.width / 2, canvas.height / 2);
                     if (isWalking) {
@@ -479,7 +570,7 @@
                     }
                 } else if (gamePhase === GamePhase.End) {
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '20px monospace';
+                    ctx.font = `${Math.floor(canvasHeight * 0.035)}px monospace`;
                     ctx.textAlign = 'center';
                     ctx.fillText('The End', canvas.width / 2, canvas.height / 2);
                 } else {
@@ -575,6 +666,21 @@
             touchStartX = null;
         });
 
+        let fullscreenRequested = false;
+        canvas.addEventListener('click', () => {
+            if (!fullscreenRequested && !document.fullscreenElement) {
+                const el = document.documentElement;
+                if (el.requestFullscreen) {
+                    el.requestFullscreen();
+                } else if (el.webkitRequestFullscreen) {
+                    el.webkitRequestFullscreen();
+                } else if (el.msRequestFullscreen) {
+                    el.msRequestFullscreen();
+                }
+                fullscreenRequested = true;
+            }
+        });
+
         canvas.addEventListener('click', e => {
             const rect = canvas.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
@@ -582,25 +688,27 @@
 
             if (gamePhase === GamePhase.Choice) {
                 // YES button box
-                if (clickX >= canvas.width / 2 - 140 &&
-                    clickX <= canvas.width / 2 - 20 &&
-                    clickY >= canvas.height - 100 &&
-                    clickY <= canvas.height - 40) {
+                if (clickX >= clampedYesButtonX &&
+                    clickX <= clampedYesButtonX + buttonWidth &&
+                    clickY >= buttonsY &&
+                    clickY <= buttonsY + buttonHeight) {
                     playerChoice = 'yes';
                     gamePhase = GamePhase.AfterChoiceYes;
                     afterChoiceWorldOffsetX = 0;
                     movingLeft = false;
                     trackUserChoice(`player_choice:yes`);
                     movingRight = false;
+                    event.stopImmediatePropagation();
                 }
                 // NO button box
-                else if (clickX >= canvas.width / 2 + 20 &&
-                    clickX <= canvas.width / 2 + 140 &&
-                    clickY >= canvas.height - 100 &&
-                    clickY <= canvas.height - 40) {
+                else if (clickX >= clampedNoButtonX &&
+                    clickX <= clampedNoButtonX + buttonWidth &&
+                    clickY >= buttonsY &&
+                    clickY <= buttonsY + buttonHeight) {
                     playerChoice = 'no';
                     trackUserChoice(`player_choice:no`);
                     gamePhase = GamePhase.AfterChoiceNo;
+                    event.stopImmediatePropagation();
                 }
             }
         });
