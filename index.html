@@ -122,12 +122,6 @@
             // reduce buttonWidth, or buttonGap dynamically here
             buttonWidth = (availableWidth - buttonGap) / 2;
         }
-
-        console.log('canvasWidth:', canvasWidth, 'buttonWidth:', buttonWidth, 'buttonGap:', buttonGap);
-        console.log('yesButtonX (before clamp):', yesButtonX);
-        console.log('clampedYesButtonX:', clampedYesButtonX);
-        console.log('noButtonX (before clamp):', noButtonX);
-        console.log('clampedNoButtonX:', clampedNoButtonX);
         
         // === Add these variables for choice screen fade and typing effect ===
         let fadeAlpha = 0;
@@ -172,37 +166,37 @@
             { backgroundColor: '#add8e6', text: "Seoul: Embracing new horizons.", bgImageSrc: 'pixel_seoul.png' },
             { backgroundColor: '#add8e6', text: "Berlin: Reminiscing moments.", bgImageSrc: 'pixel_berlin.png' },
             { backgroundColor: '#add8e6', text: "Taipei: Heartfelt memories.", bgImageSrc: 'pixel_taipei.png' },
-            { backgroundColor: '#add8e6', text: "Zurich: Comfort and peace.", bgImageSrc: 'pixel_zurich.png' },
+            { backgroundColor: '#add8e6', text: "Amsterdam: Youth.", bgImageSrc: 'pixel_amsterdam.png' },
             { backgroundColor: '#add8e6', text: "Paris: Timeless love.", bgImageSrc: 'pixel_paris.png' },
             { backgroundColor: '#add8e6', text: "Beijing: Strength through challenges.", bgImageSrc: 'pixel_beijing.png' },
             { backgroundColor: '#add8e6', text: "Osaka: Resilience remains.", bgImageSrc: 'pixel_osaka.png' },
-            { backgroundColor: '#add8e6', text: "Tokyo: Never giving up.", bgImageSrc: 'pixel_tokyo.png' },
+            { backgroundColor: '#add8e6', text: "New York: City that never sleeps.", bgImageSrc: 'pixel_newyork.png' },
             { backgroundColor: '#add8e6', text: "Hong Kong: Home forever.", bgImageSrc: 'pixel_hk.png' },
             { backgroundColor: '#add8e6', text: "Earth: Infinite adventures around the globe.", bgImageSrc: 'pixel_earth.png' }
         ];
 
         const storyMilestones = [
             { x: 0, year: 2011, text: "The boy started the year filled with hope.", soulmateVisible: true, bg: 'sf' },
-            { x: 150, year: 2011, text: "In August, they started dating officially.", soulmateVisible: true, bg: 'sf' },
+            { x: 150, year: 2011, text: "In August, they started dating officially.", soulmateVisible: true, bg: 'hk' },
             { x: 300, year: 2011, text: "Long Distance...", soulmateVisible: false, bg: 'sf' },
             { x: 450, year: 2011, text: "Reunited by Xmas.", soulmateVisible: true, bg: 'hk' },
             { x: 600, year: 2012, text: "Love deepens over time.", soulmateVisible: true, bg: 'hk' },
-            { x: 900, year: 2012, text: "First trip", soulmateVisible: true, bg: 'hk' },
-            { x: 1200, year: 2013, text: "She said YES!!.", soulmateVisible: true, bg: 'hk' },
+            { x: 900, year: 2012, text: "First trip", soulmateVisible: true, bg: 'tokyo' },
+            { x: 1200, year: 2013, text: "She said YES!!.", soulmateVisible: true, bg: 'paris' },
             { x: 1500, year: 2014, text: "Preparing for a joyful moment", soulmateVisible: true, bg: 'hk' },
-            { x: 1800, year: 2014, text: "Wedding photoshoot in Verona", soulmateVisible: true, bg: 'hk' },
+            { x: 1800, year: 2014, text: "Wedding photoshoot in Verona", soulmateVisible: true, bg: 'verona' },
             { x: 2100, year: 2015, text: "Wedding day surrounded by love.", soulmateVisible: true, bg: 'hk' },
             { x: 2400, year: 2015, text: "Moved in together", soulmateVisible: true, bg: 'hk' },
-            { x: 2700, year: 2015, text: "Honeymoon in Positano", soulmateVisible: true, bg: 'hk' },
+            { x: 2700, year: 2015, text: "Honeymoon in Positano", soulmateVisible: true, bg: 'postiano' },
             { x: 3000, year: 2016, text: "Life brings many adventures.", soulmateVisible: true, bg: 'hk' },
             { x: 3300, year: 2017, text: "Cherished moments together.", soulmateVisible: true, bg: 'hk' },
             { x: 3600, year: 2018, text: "Overcoming challenges with strength.", soulmateVisible: true, bg: 'hk' },
             { x: 3900, year: 2019, text: "Tough times in September.", soulmateVisible: false, bg: 'hk' },
             { x: 4200, year: 2019, text: "She came back :)", soulmateVisible: true, bg: 'hk' },
             { x: 4500, year: 2020, text: "A world changed, faces masked.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
-            { x: 4800, year: 2021, text: "Hope grows anew.", soulmateVisible: true, bg: 'hk' },
-            { x: 5100, year: 2022, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk' },
-            { x: 5400, year: 2023, text: "First trip since covid", soulmateVisible: true, bg: 'hk' },
+            { x: 4800, year: 2021, text: "Hope grows anew.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: 5100, year: 2022, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: 5400, year: 2023, text: "First trip since covid", soulmateVisible: true, bg: 'tokyo' },
             { x: 5700, year: 2024, text: "Celebrated our big birthdays together", soulmateVisible: true, bg: 'hk' },
             { x: 6000, year: 2025, text: "Uncertainty looms", soulmateVisible: false, bg: 'hk' },
             { x: 6300, year: 2025, text: "Marriage at crossroads", soulmateVisible: false, bg: 'hk' },
@@ -232,6 +226,10 @@
         // Load backgrounds
         const bg_sf = new Image(); bg_sf.src = 'pixel_sf.png';
         const bg_hk = new Image(); bg_hk.src = 'pixel_hk.png';
+        const bg_paris = new Image(); bg_paris.src = 'pixel_paris.png';
+        const bg_postiano = new Image(); bg_postiano.src = 'pixel_postiano.png';
+        const bg_tokyo = new Image(); bg_tokyo.src = 'pixel_tokyo.png';
+        const bg_verona = new Image(); bg_verona.src = 'pixel_verona.png';
 
         // After choice YES backgrounds
         const afterChoiceYesBgImgs = afterChoiceYesFrames.map(frame => {
@@ -262,7 +260,7 @@
 
         // Asset loading tracker
         const assets = [
-            bg_sf, bg_hk,
+            bg_sf, bg_hk, bg_paris, bg_postiano, bg_tokyo, bg_verona,
             ...boyIdleImgs, ...boyWalkImgs, ...boyCryingImgs, ...boyCryingWalkImgs,
             ...soulmateIdleImgs, ...soulmateWalkImgs,
             ...boyMaskedImgs, ...soulmateMaskedImgs,
@@ -311,7 +309,22 @@
 
         function currentBgImage() {
             const idx = getCurrentMilestone();
-            return storyMilestones[idx].bg === 'sf' ? bg_sf : bg_hk;
+            const bgImg = storyMilestones[idx].bg;
+
+            switch (bgImg) {
+                case 'sf':
+                    return bg_sf
+                case 'tokyo':
+                    return bg_tokyo
+                case 'verona':
+                    return bg_verona
+                case 'paris':
+                    return bg_paris
+                case 'postiano':
+                    return bg_postiano
+                default:
+                    return bg_hk
+            }
         }
 
         function currentSoulmateVisible() {
