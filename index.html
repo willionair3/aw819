@@ -168,7 +168,7 @@
         const isMobile = window.innerWidth <= 600;
 
         let autoScrolling = false;
-        const autoScrollSpeed = isMobile ? 6 : 2; // Pixels to scroll per game loop frame (adjust as needed)
+        const autoScrollSpeed = isMobile ? 24 : 6; // Pixels to scroll per game loop frame (adjust as needed)
 
         // Frame dimensions and scale
         const frameWidth = 40;
@@ -245,7 +245,7 @@
         let choiceSentenceIndex = 0;
         let charIndex = 0;
         let charTimer = 0;
-        const charDelay = isMobile ? 2 : 12; // Faster typing on phones;
+        const charDelay = isMobile ? 2 : 5; // Faster typing on phones;
         const sentencePause = 500;
         let pauseJustStarted = false;
         let pauseTimer = 0;
