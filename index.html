@@ -48,12 +48,52 @@
         #startButton:hover {
             background-color: #218838;
         }
+
+        #swipeOverlay {
+            position: fixed;
+            top: 60px;
+            /* adjust this to position near top */
+            left: 50%;
+            transform: translateX(-50%);
+            background: transparent;
+            /* no background */
+            padding: 0;
+            color: white;
+            text-align: center;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            max-width: 300px;
+            pointer-events: none;
+            font-size: 18px;
+            /* bigger text */
+            font-weight: bold;
+            user-select: none;
+        }
     </style>
 </head>
 
 <body>
 
     <canvas id="gameCanvas"></canvas>
+
+    <div id="swipeOverlay" style="
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-family: monospace, monospace;
+    font-size: 36px;
+    font-weight: bold;
+    text-align: center;
+    pointer-events: none;
+    z-index: 1100;">
+        <div>Hold left or right to move</div>
+    </div>
+
 
     <div id="startOverlay">
         <button id="startButton">Start</button>
@@ -893,11 +933,13 @@
 
         const startOverlay = document.getElementById('startOverlay');
         const startButton = document.getElementById('startButton');
+        const swipeOverlay = document.getElementById('swipeOverlay');
         bgMusic.loop = true;
         bgMusic.volume = 0.3;
 
         startButton.addEventListener('click', () => {
-            startOverlay.style.display = 'none';  // Remove overlay to unlock game UI
+            startOverlay.style.display = 'none';
+            swipeOverlay.style.display = 'none'; // Remove overlay to unlock game UI
             bgMusic.play();                       // Start background music
         });
     </script>
