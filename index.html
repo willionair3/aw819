@@ -200,6 +200,8 @@
         const boyMaskedWalkFrames = ['pixel_boy_masked_walk_1.png', 'pixel_boy_masked_walk_2.png', 'pixel_boy_masked_walk_3.png', 'pixel_boy_masked_walk_4.png'];
         const soulmateMaskedWalkFrames = ['pixel_soulmate_masked_walk_1.png', 'pixel_soulmate_masked_walk_2.png', 'pixel_soulmate_masked_walk_3.png', 'pixel_soulmate_masked_walk_4.png'];
 
+        const boyMaskedCryingFrames = ['pixel_boy_masked_crying_1.png', 'pixel_boy_masked_crying_2.png', 'pixel_boy_masked_crying_3.png', 'pixel_boy_masked_crying_4.png'];
+
         const afterChoiceYesFrames = [
             { backgroundColor: '#f5f0e6', text: "Budapest: A new journey begins.", bgImageSrc: 'pixel_budapest.png' },
             { backgroundColor: '#d0d7de', text: "Prague: Exploring ancient streets.", bgImageSrc: 'pixel_prague.png' },
@@ -214,7 +216,7 @@
             { backgroundColor: '#add8e6', text: "Osaka: Resilience remains.", bgImageSrc: 'pixel_osaka.png' },
             { backgroundColor: '#add8e6', text: "New York: City that never sleeps.", bgImageSrc: 'pixel_newyork.png' },
             { backgroundColor: '#add8e6', text: "Hong Kong: Home forever.", bgImageSrc: 'pixel_hk.png' },
-            { backgroundColor: '#add8e6', text: "Infinite adventures around the globe.", bgImageSrc: 'pixel_earth.png' }
+            { backgroundColor: '#add8e6', text: "Vow renewed, Infinite adventures around the globe.", bgImageSrc: 'pixel_earth.png' }
         ];
 
         const storyMilestones = [
@@ -233,16 +235,17 @@
             { x: 3000, year: 2016, text: "Life brings many adventures.", soulmateVisible: true, bg: 'hk' },
             { x: 3300, year: 2017, text: "Cherished moments together.", soulmateVisible: true, bg: 'hk' },
             { x: 3600, year: 2018, text: "Overcoming challenges with strength.", soulmateVisible: true, bg: 'hk' },
-            { x: 3900, year: 2019, text: "Tough times in September.", soulmateVisible: false, bg: 'hk' },
-            { x: 4200, year: 2019, text: "She came back :)", soulmateVisible: true, bg: 'hk' },
-            { x: 4500, year: 2020, text: "A world changed, faces masked.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
-            { x: 4800, year: 2021, text: "Hope grows anew.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
-            { x: 5100, year: 2022, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
-            { x: 5400, year: 2023, text: "First trip since covid", soulmateVisible: true, bg: 'tokyo' },
-            { x: 5700, year: 2024, text: "Celebrated our big birthdays together", soulmateVisible: true, bg: 'hk' },
-            { x: 6000, year: 2025, text: "10 years wedding anniversary", soulmateVisible: true, bg: 'hk' },
-            { x: 6300, year: 2025, text: "Uncertainty looms", soulmateVisible: false, bg: 'hk' },
-            { x: 6600, year: 2025, text: "Marriage at crossroads", soulmateVisible: false, bg: 'hk' },
+            { x: 3900, year: 2019, text: "Unconditional love from her", soulmateVisible: true, bg: 'hk' },
+            { x: 4200, year: 2020, text: "A world changed, faces masked.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: 4500, year: 2020, text: "Tough time in September...", soulmateVisible: false, bg: 'hk', maskedVisible: true },
+            { x: 4800, year: 2020, text: "She came back :)", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: 5100, year: 2021, text: "Hope grows anew.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: 5400, year: 2022, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: 5700, year: 2023, text: "First trip since the pandemic", soulmateVisible: true, bg: 'tokyo' },
+            { x: 6000, year: 2024, text: "Celebrated our big birthdays together", soulmateVisible: true, bg: 'hk' },
+            { x: 6300, year: 2025, text: "10 years wedding anniversary", soulmateVisible: true, bg: 'hk' },
+            { x: 6600, year: 2025, text: "Uncertainty looms", soulmateVisible: false, bg: 'hk' },
+            { x: 6900, year: 2025, text: "Marriage at crossroads", soulmateVisible: false, bg: 'hk' },
         ];
 
         const GamePhase = { Story: 0, Choice: 1, AfterChoiceYes: 2, AfterChoiceNo: 3, End: 4 };
@@ -308,6 +311,7 @@
         const soulmateMaskedImgs = preloadFrames(soulmateMaskedFrames);
         const boyMaskedWalkImgs = preloadFrames(boyMaskedWalkFrames);
         const soulmateMaskedWalkImgs = preloadFrames(soulmateMaskedWalkFrames);
+        const boyMaskedCryingImgs = preloadFrames(boyMaskedCryingFrames);
 
         // Asset loading tracker
         const assets = [
@@ -315,7 +319,7 @@
             ...boyIdleImgs, ...boyWalkImgs, ...boyCryingImgs, ...boyCryingWalkImgs,
             ...soulmateIdleImgs, ...soulmateWalkImgs,
             ...boyMaskedImgs, ...soulmateMaskedImgs,
-            ...boyMaskedWalkImgs, ...soulmateMaskedWalkImgs,
+            ...boyMaskedWalkImgs, ...soulmateMaskedWalkImgs, ...boyMaskedCryingImgs,
             ...afterChoiceYesBgImgs
         ];
 
@@ -398,31 +402,73 @@
         // Animation update with frame array tracking and reset on change
         let currentFrames = boyIdleImgs; // default animation frames
 
+        // Define animation states
+        const AnimationState = {
+            IDLE: 'idle',
+            WALK: 'walk',
+            MASKED: 'masked',
+            MASKED_CRYING: 'maskedCrying',
+            CRYING: 'crying',
+            AFTER_CHOICE_YES: 'afterChoiceYes'
+        };
+
+        // Add a variable to keep track of current animation state
+        let currentAnimationState = AnimationState.IDLE;
+
+        function determineAnimationState() {
+            // Get current milestone based on playerX
+            const currentMilestone = storyMilestones[getCurrentMilestone()];
+            const isMasked = currentMilestone.maskedVisible === true;
+            const soulmateVisibleFlag = currentMilestone.soulmateVisible !== false; // default true if missing
+
+            if (gamePhase === GamePhase.AfterChoiceYes) {
+                return AnimationState.AFTER_CHOICE_YES;
+            }
+
+            if (movingLeft || movingRight) {
+                if (isMasked && !soulmateVisibleFlag) return AnimationState.MASKED_CRYING;
+                if (isMasked) return AnimationState.MASKED;
+                if (!soulmateVisibleFlag) return AnimationState.CRYING;
+                return AnimationState.WALK;
+            } else {
+                if (isMasked && !soulmateVisibleFlag) return AnimationState.MASKED_CRYING;
+                if (isMasked) return AnimationState.MASKED;
+                if (!soulmateVisibleFlag) return AnimationState.CRYING;
+                return AnimationState.IDLE;
+            }
+        }
+
         function updateAnimation() {
             animationTimer++;
             const animationRate = movingLeft || movingRight ? 6 : 12;
             if (animationTimer >= animationRate) {
                 animationTimer = 0;
 
+                const newState = determineAnimationState();
                 let newFrames;
-                if (gamePhase === GamePhase.AfterChoiceYes) {
-                    newFrames = boyWalkImgs;
-                } else if (movingLeft || movingRight) {
-                    if (currentSoulmateMaskedVisible()) {
-                        newFrames = boyMaskedWalkImgs;
-                    } else if (!currentSoulmateVisible()) {
-                        newFrames = boyCryingWalkImgs;
-                    } else {
-                        newFrames = boyWalkImgs;
-                    }
-                } else {
-                    if (currentSoulmateMaskedVisible()) {
-                        newFrames = boyMaskedImgs;
-                    } else if (!currentSoulmateVisible()) {
-                        newFrames = boyCryingImgs;
-                    } else {
+
+                // Assign frames based on animation state
+                switch (newState) {
+                    case AnimationState.IDLE:
                         newFrames = boyIdleImgs;
-                    }
+                        break;
+                    case AnimationState.WALK:
+                        newFrames = boyWalkImgs;
+                        break;
+                    case AnimationState.MASKED:
+                        newFrames = movingLeft || movingRight ? boyMaskedWalkImgs : boyMaskedImgs;
+                        break;
+                    case AnimationState.MASKED_CRYING:
+                        newFrames = boyMaskedCryingImgs;
+                        break;
+                    case AnimationState.CRYING:
+                        newFrames = movingLeft || movingRight ? boyCryingWalkImgs : boyCryingImgs;
+                        break;
+                    case AnimationState.AFTER_CHOICE_YES:
+                        newFrames = boyWalkImgs;
+                        break;
+                    default:
+                        newFrames = boyIdleImgs;
                 }
 
                 if (newFrames !== currentFrames) {
@@ -434,6 +480,7 @@
                         animationFrame = 0;
                     }
                 }
+                currentAnimationState = newState;
             }
         }
 
@@ -495,43 +542,6 @@
             ctx.textBaseline = 'middle';
             ctx.fillStyle = '#fff'; // white emoji color
             ctx.fillText(emoji, x + size / 2, y + size / 2);
-        }
-
-        // Draw button helper
-        function drawButton(x, y, width, height, bgColor, textColor, text) {
-            // Draw button background with rounded corners
-            const radius = height / 4;
-            ctx.fillStyle = bgColor;
-            ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.lineTo(x + width - radius, y);
-            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-            ctx.lineTo(x + width, y + height - radius);
-            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-            ctx.lineTo(x + radius, y + height);
-            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-            ctx.lineTo(x, y + radius);
-            ctx.quadraticCurveTo(x, y, x + radius, y);
-            ctx.closePath();
-            ctx.fill();
-
-            // Artistic shadow for button style
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
-            ctx.shadowBlur = 4;
-
-            // Draw button text smaller with custom font
-            const fontSize = Math.floor(height * 0.5);  // half of button height
-            ctx.font = `${fontSize}px monospace`;
-            ctx.fillStyle = textColor;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            ctx.fillText(text, x + width / 2, y + height / 2);
-
-            // Reset shadow for other drawings
-            ctx.shadowBlur = 0;
         }
 
         function sendUserIPAndDeviceInfo() {
@@ -718,7 +728,15 @@
                     ctx.textAlign = 'center';
                     ctx.fillText('The End', canvas.width / 2, canvas.height / 2);
                 } else {
-                    // Normal story animation drawing
+                    // Normal story animation drawing based on flags and position
+                    const currentMilestone = storyMilestones[getCurrentMilestone()];
+
+                    const masked = currentMilestone?.maskedVisible === true;
+                    const soulmateVisible = currentMilestone?.soulmateVisible !== false;
+
+                    // Special case for masked and crying at milestone x=5400
+                    const isMaskedCrying = masked && !soulmateVisible;
+
                     if (soulmateVisible) {
                         if (masked) {
                             if (isWalking) {
@@ -738,14 +756,20 @@
                             }
                         }
                     } else {
-                        // Crying boy animations when soulmate invisible
-                        if (isWalking) {
-                            drawCharacter(boyCryingWalkImgs, boyScreenX, charScreenY, animationFrame);
+                        if (isMaskedCrying) {
+                            // Use masked crying images for the boy only
+                            drawCharacter(boyMaskedCryingImgs, boyScreenX, charScreenY, animationFrame);
                         } else {
-                            drawCharacter(boyCryingImgs, boyScreenX, charScreenY, animationFrame);
+                            // Crying boy animations when soulmate invisible but not masked crying state
+                            if (isWalking) {
+                                drawCharacter(boyCryingWalkImgs, boyScreenX, charScreenY, animationFrame);
+                            } else {
+                                drawCharacter(boyCryingImgs, boyScreenX, charScreenY, animationFrame);
+                            }
                         }
                     }
                 }
+
             }
 
             // Automatically switch to Choice phase at last milestone
