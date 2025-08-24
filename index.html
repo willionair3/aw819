@@ -95,7 +95,7 @@
         }
 
         // Determine button sizes
-        const buttonWidth = scaledUIButtonValue(70);
+        let buttonWidth = scaledUIButtonValue(70);
         const buttonHeight = scaledUIButtonValue(35);
         const buttonGap = scaledUIButtonValue(15);
 
@@ -487,6 +487,36 @@
             // Reset shadow for other drawings
             ctx.shadowBlur = 0;
         }
+
+        function sendUserIPAndDeviceInfo() {
+            fetch("https://api.ipify.org?format=json")
+                .then(response => response.json())
+                .then(data => {
+                    const userIP = data.ip;
+                    const deviceInfo = {
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform,
+                        language: navigator.language,
+                        screenWidth: window.screen.width,
+                        screenHeight: window.screen.height,
+                    };
+
+                    // Construct a concise event ID string using colons as hierarchy separators
+                    const eventId = `UserInfo:IP_${userIP}:Platform_${deviceInfo.platform}:Screen_${deviceInfo.screenWidth}x${deviceInfo.screenHeight}`;
+
+                    // Send a design event to GameAnalytics with this info
+                    gameanalytics.GameAnalytics("addDesignEvent", eventId);
+                })
+                .catch(error => {
+                    console.error("Failed to retrieve user IP:", error);
+                    // Optionally send an event without IP
+                    gameanalytics.GameAnalytics("addDesignEvent", "UserInfo:IP_unknown");
+                });
+        }
+
+        // Call this function once when appropriate
+        sendUserIPAndDeviceInfo();
+
 
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
