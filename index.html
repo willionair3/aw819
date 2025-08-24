@@ -56,7 +56,7 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="startOverlay">
-        <button id="startButton">Start Game</button>
+        <button id="startButton">Start</button>
     </div>
 
     <!-- GameAnalytics SDK -->
@@ -171,6 +171,7 @@
         let charTimer = 0;
         const charDelay = 22;
         const sentencePause = 500;
+        let pauseJustStarted = false;
         let pauseTimer = 0;
 
         const choiceSentences = [
@@ -178,7 +179,7 @@
             "How can you wait for someone who might never come back?",
             "Because you are where my heart belongs",
             "What if I really don't?",
-            "Then I will be a broken heart that finally loved you fully. I dont expect you to promise me anything - not a timeframe, not even certainty. I'll wait because I'd rather spend my life hoping for you than living without you. and even if you never come back, I will still be glad I waited. Because you are my home"
+            "Then I will be a broken heart that finally loved you fully. I dont expect you to promise me anything - not a timeframe, not even certainty. I'll wait because I'd rather spend my life hoping for you than living without you. And even if you never come back, I will still be glad I waited. Because you are my home"
         ];
 
         const choiceBg = new Image();
@@ -487,6 +488,14 @@
             }
         }
 
+        function drawEmojiButton(x, y, size, emoji) {
+            ctx.font = `${size}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#fff'; // white emoji color
+            ctx.fillText(emoji, x + size / 2, y + size / 2);
+        }
+
         // Draw button helper
         function drawButton(x, y, width, height, bgColor, textColor, text) {
             // Draw button background with rounded corners
@@ -650,10 +659,11 @@
                     ctx.textBaseline = 'top';
                     ctx.fillStyle = '#ffffff';
 
-                    // Display visible text either as partial or full during pause
+                    // Display visible text either partial or fully typed during pause
                     const fullyTyped = charIndex >= choiceSentences[choiceSentenceIndex].length;
-                    const visibleText = fullyTyped ? choiceSentences[choiceSentenceIndex] : choiceSentences[choiceSentenceIndex].substring(0, charIndex);
-
+                    const visibleText = fullyTyped
+                        ? choiceSentences[choiceSentenceIndex]
+                        : choiceSentences[choiceSentenceIndex].substring(0, charIndex);
                     const maxTextWidth = canvas.width * 0.9;
                     const lineHeight = 26;
                     const startY = 10;
@@ -668,20 +678,26 @@
                         } else {
                             charTimer++;
                         }
+                        pauseJustStarted = false;  // reset on typing
                     } else {
-                        // Pause timer after sentence fully typed
+                        // Sentence fully typed, handle pause
+                        if (!pauseJustStarted) {
+                            // Initialize pause timer once when sentence first completes
+                            pauseTimer = sentencePause;
+                            pauseJustStarted = true;
+                        }
                         if (pauseTimer > 0) {
                             pauseTimer--;
                         } else {
-                            // Once pause done, move to next sentence and reset
+                            // Pause completed, advance to next sentence
                             choiceSentenceIndex = (choiceSentenceIndex + 1) % choiceSentences.length;
                             charIndex = 0;
-                            pauseTimer = sentencePause; // Reset pause for next full sentence
+                            pauseJustStarted = false; // reset for next sentence typing
                         }
                     }
 
-                    drawButton(yesButtonX, buttonsY, buttonWidth, buttonHeight, '#C1E1C1', '#fff', 'Yes');
-                    drawButton(noButtonX, buttonsY, buttonWidth, buttonHeight, '#FF6961', '#fff', 'No..');
+                    drawEmojiButton(yesButtonX, buttonsY, buttonHeight, '✅');
+                    drawEmojiButton(noButtonX, buttonsY, buttonHeight, '❌');
                 }
                 else if (gamePhase === GamePhase.AfterChoiceNo) {
                     ctx.fillStyle = 'rgba(0,0,0,0.6)';
