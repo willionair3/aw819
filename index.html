@@ -215,11 +215,15 @@
         let pauseTimer = 0;
 
         const choiceSentences = [
+            "You did everything for me, and loved me unconditionally",
+            "I don't know exactly when, but you have literally been a part of my heart for the longest time",
+            "People always say home is where your heart belong, and I realized you are my home, the one calming factor amongst all chaos",
+            "But in return, I was blinded by how selfish and self-centered I am..",
             "Will the soulmate return?",
             "How can you wait for someone who might never come back?",
             "Because you are where my heart belongs",
             "What if I really don't?",
-            "Then I will be a broken heart that finally loved you fully. I dont expect you to promise me anything - not a timeframe, not even certainty. I'll wait because I'd rather spend my life hoping for you than living without you. And even if you never come back, I will still be glad I waited. Because you are my home"
+            "Then I will be a broken heart that finally loved you fully. I dont expect you to promise me anything - not a timeframe, not even certainty. I'll wait because I'd rather spend my life hoping for you than living without you. And even if you never come back, I will still be glad I waited. Because you have always been the one, and you will always be the one."
         ];
 
         const choiceBg = new Image();
@@ -265,27 +269,27 @@
             { x: 300, year: 2011, text: "Long Distance...", soulmateVisible: false, bg: 'sf' },
             { x: 450, year: 2011, text: "Reunited by Xmas.", soulmateVisible: true, bg: 'hk' },
             { x: 600, year: 2012, text: "Love deepens over time.", soulmateVisible: true, bg: 'hk' },
-            { x: 900, year: 2012, text: "First trip", soulmateVisible: true, bg: 'tokyo' },
-            { x: 1200, year: 2013, text: "She said YES!!.", soulmateVisible: true, bg: 'paris' },
-            { x: 1500, year: 2014, text: "Preparing for a joyful moment", soulmateVisible: true, bg: 'hk' },
-            { x: 1800, year: 2014, text: "Wedding photoshoot in Verona", soulmateVisible: true, bg: 'verona' },
+            { x: 900, year: 2012, text: "First trip ever with a significant other.", soulmateVisible: true, bg: 'tokyo' },
+            { x: 1200, year: 2013, text: "She said YES!!", soulmateVisible: true, bg: 'paris' },
+            { x: 1500, year: 2014, text: "Preparing for a joyful moment, but she did all the works..", soulmateVisible: true, bg: 'hk' },
+            { x: 1800, year: 2014, text: "Wedding photoshoot in Verona.", soulmateVisible: true, bg: 'verona' },
             { x: 2100, year: 2015, text: "Wedding day surrounded by love.", soulmateVisible: true, bg: 'hk' },
-            { x: 2400, year: 2015, text: "Moved in together", soulmateVisible: true, bg: 'hk' },
-            { x: 2700, year: 2015, text: "Honeymoon in Positano", soulmateVisible: true, bg: 'postiano' },
+            { x: 2400, year: 2015, text: "Moved in together, but I took up all the spaces", soulmateVisible: true, bg: 'hk' },
+            { x: 2700, year: 2015, text: "Honeymoon in Positano.", soulmateVisible: true, bg: 'postiano' },
             { x: 3000, year: 2016, text: "Life brings many adventures.", soulmateVisible: true, bg: 'hk' },
             { x: 3300, year: 2017, text: "Cherished moments together.", soulmateVisible: true, bg: 'hk' },
             { x: 3600, year: 2018, text: "Overcoming challenges with strength.", soulmateVisible: true, bg: 'hk' },
-            { x: 3900, year: 2019, text: "Unconditional love from her", soulmateVisible: true, bg: 'hk' },
+            { x: 3900, year: 2019, text: "Still loving me no matter how selfish i am..", soulmateVisible: true, bg: 'hk' },
             { x: 4200, year: 2020, text: "A world changed, faces masked.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
             { x: 4500, year: 2020, text: "Tough time in September...", soulmateVisible: false, bg: 'hk', maskedVisible: true },
-            { x: 4800, year: 2020, text: "She came back :) but I soon forgot about my promises...", soulmateVisible: true, bg: 'hk', maskedVisible: true },
-            { x: 5100, year: 2021, text: "Hope grows anew.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: 4800, year: 2020, text: "She came back, but I soon forgot about my promises...", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: 5100, year: 2021, text: "Yet she is still trying to make us better..", soulmateVisible: true, bg: 'hk', maskedVisible: true },
             { x: 5400, year: 2022, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
-            { x: 5700, year: 2023, text: "First trip since the pandemic", soulmateVisible: true, bg: 'tokyo' },
-            { x: 6000, year: 2024, text: "Celebrated our big birthdays together", soulmateVisible: true, bg: 'hk' },
-            { x: 6300, year: 2025, text: "10 years wedding anniversary", soulmateVisible: true, bg: 'hk' },
-            { x: 6600, year: 2025, text: "Uncertainty looms", soulmateVisible: false, bg: 'hk' },
-            { x: 6900, year: 2025, text: "Marriage at crossroads", soulmateVisible: false, bg: 'hk' },
+            { x: 5700, year: 2023, text: "First trip since the pandemic.", soulmateVisible: true, bg: 'tokyo' },
+            { x: 6000, year: 2024, text: "Celebrated our big birthdays together.", soulmateVisible: true, bg: 'hk' },
+            { x: 6300, year: 2025, text: "10 years wedding anniversary.", soulmateVisible: true, bg: 'hk' },
+            { x: 6600, year: 2025, text: "Uncertainty looms..", soulmateVisible: false, bg: 'hk' },
+            { x: 6900, year: 2025, text: "Marriage at crossroads..", soulmateVisible: false, bg: 'hk' },
         ];
 
         const GamePhase = { Story: 0, Choice: 1, AfterChoiceYes: 2, AfterChoiceNo: 3, End: 4 };
