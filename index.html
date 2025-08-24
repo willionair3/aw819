@@ -17,12 +17,47 @@
             background: #111;
             touch-action: none;
         }
+
+        #startOverlay {
+            position: fixed;
+            /* cover entire viewport */
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            /* center the button */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            /* on top of everything */
+        }
+
+        #startButton {
+            padding: 20px 50px;
+            font-size: 24px;
+            cursor: pointer;
+            background-color: #28a745;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        #startButton:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 
 <body>
 
     <canvas id="gameCanvas"></canvas>
+
+    <div id="startOverlay">
+        <button id="startButton">Start Game</button>
+    </div>
 
     <!-- GameAnalytics SDK -->
     <script>
@@ -140,9 +175,9 @@
 
         const choiceSentences = [
             "How can you wait for someone who might never come back?",
-            "Because I know you're worth the risk",
+            "Because you are where my heart belongs",
             "What if I really don't?",
-            "Then I will be a broken heart that loved you fully. I dont expect you to promise me anything - not a timeframe, not even certainty. I'll wait because I'd rather spend my life hoping for you than living without you. and even if you never come back, I will still be glad I waited. Because you are my home"
+            "Then I will be a broken heart that finally loved you fully. I dont expect you to promise me anything - not a timeframe, not even certainty. I'll wait because I'd rather spend my life hoping for you than living without you. and even if you never come back, I will still be glad I waited. Because you are my home"
         ];
 
         const choiceBg = new Image();
@@ -203,7 +238,7 @@
             { x: 5100, year: 2022, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
             { x: 5400, year: 2023, text: "First trip since covid", soulmateVisible: true, bg: 'tokyo' },
             { x: 5700, year: 2024, text: "Celebrated our big birthdays together", soulmateVisible: true, bg: 'hk' },
-            { x: 6000, year: 2025, text: "Uncertainty looms", soulmateVisible: false, bg: 'hk' },
+            { x: 6000, year: 2025, text: "Uncertainty looms", soulmateVisible: true, bg: 'hk' },
             { x: 6300, year: 2025, text: "Marriage at crossroads", soulmateVisible: false, bg: 'hk' },
         ];
 
@@ -805,8 +840,27 @@
         });
 
         requestAnimationFrame(gameLoop);
+
+        const bgMusic = new Audio('angel.mp3');
+        bgMusic.loop = true;
+        bgMusic.volume = 0.3;
+
+        bgMusic.play().catch(e => {
+            console.log("Autoplay prevented: play will start on user interaction.");
+        });
+
+        const startOverlay = document.getElementById('startOverlay');
+        const startButton = document.getElementById('startButton');
+        bgMusic.loop = true;
+        bgMusic.volume = 0.3;
+
+        startButton.addEventListener('click', () => {
+            startOverlay.style.display = 'none';  // Remove overlay to unlock game UI
+            bgMusic.play();                       // Start background music
+        });
     </script>
 
+    <audio src="angel.mp3" autoplay loop volume="0.3"></audio>
 </body>
 
 </html>
