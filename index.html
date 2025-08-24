@@ -209,7 +209,8 @@
         let choiceSentenceIndex = 0;
         let charIndex = 0;
         let charTimer = 0;
-        const charDelay = 18;
+        const isMobile = window.innerWidth <= 600;
+        const charDelay = isMobile ? 2 : 5; // Faster typing on phones;
         const sentencePause = 500;
         let pauseJustStarted = false;
         let pauseTimer = 0;
@@ -266,31 +267,31 @@
 
         const storyMilestones = [
             { x: 0, year: 2011, text: "The boy started the year filled with hope.", soulmateVisible: true, bg: 'sf' },
-            { x: 60, year: 2011, text: "In August, they started dating officially.", soulmateVisible: true, bg: 'hk' },
-            { x: 120, year: 2011, text: "Long Distance...", soulmateVisible: false, bg: 'sf' },
-            { x: 180, year: 2011, text: "Reunited by Xmas.", soulmateVisible: true, bg: 'hk' },
-            { x: 240, year: 2012, text: "Love deepens over time.", soulmateVisible: true, bg: 'hk' },
-            { x: 300, year: 2012, text: "First trip ever with a significant other.", soulmateVisible: true, bg: 'tokyo' },
-            { x: 400, year: 2013, text: "She said YES!!", soulmateVisible: true, bg: 'paris' },
-            { x: 500, year: 2014, text: "Preparing for a joyful moment, but she did all the works..", soulmateVisible: true, bg: 'hk' },
-            { x: 600, year: 2014, text: "Wedding photoshoot in Verona.", soulmateVisible: true, bg: 'verona' },
-            { x: 700, year: 2015, text: "Wedding day surrounded by love.", soulmateVisible: true, bg: 'hk' },
-            { x: 800, year: 2015, text: "Moved in together, but I took up all the spaces.", soulmateVisible: true, bg: 'hk' },
-            { x: 900, year: 2015, text: "Honeymoon in Positano.", soulmateVisible: true, bg: 'postiano' },
-            { x: 1000, year: 2016, text: "No matter how selfish I am, she's still here.", soulmateVisible: true, bg: 'hk' },
-            { x: 1100, year: 2017, text: "Cherished moments together.", soulmateVisible: true, bg: 'hk' },
-            { x: 1200, year: 2018, text: "How I wish I could turn back time.", soulmateVisible: true, bg: 'hk' },
-            { x: 1300, year: 2019, text: "Still loving me no matter how selfish i am..", soulmateVisible: true, bg: 'hk' },
-            { x: 1400, year: 2020, text: "A world changed, faces masked.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
-            { x: 1500, year: 2020, text: "Tough time in September...", soulmateVisible: false, bg: 'hk', maskedVisible: true },
-            { x: 1600, year: 2020, text: "She came back, but I soon forgot about my promises...", soulmateVisible: true, bg: 'hk', maskedVisible: true },
-            { x: 1700, year: 2021, text: "Yet she is still trying to make us better..", soulmateVisible: true, bg: 'hk', maskedVisible: true },
-            { x: 1800, year: 2022, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
-            { x: 1900, year: 2023, text: "First trip since the pandemic.", soulmateVisible: true, bg: 'tokyo' },
-            { x: 2000, year: 2024, text: "Celebrated our big birthdays together.", soulmateVisible: true, bg: 'hk' },
-            { x: 2100, year: 2025, text: "10 years wedding anniversary.", soulmateVisible: true, bg: 'hk' },
-            { x: 2300, year: 2025, text: "Uncertainty looms..Marriage at crossroads..", soulmateVisible: false, bg: 'hk' },
-            { x: 2400, year: 2025, text: "Uncertainty looms..Marriage at crossroads..", soulmateVisible: false, bg: 'hk' },
+            { x: isMobile ? 60 : 150, year: 2011, text: "In August, they started dating officially.", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 120 : 300, year: 2011, text: "Long Distance...", soulmateVisible: false, bg: 'sf' },
+            { x: isMobile ? 180 : 450, year: 2011, text: "Reunited by Xmas.", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 240 : 600, year: 2012, text: "Love deepens over time.", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 300 : 900, year: 2012, text: "First trip ever with a significant other.", soulmateVisible: true, bg: 'tokyo' },
+            { x: isMobile ? 400 : 1200, year: 2013, text: "She said YES!!", soulmateVisible: true, bg: 'paris' },
+            { x: isMobile ? 500 : 1500, year: 2014, text: "Preparing for a joyful moment, but she did all the works..", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 600 : 1800, year: 2014, text: "Wedding photoshoot in Verona.", soulmateVisible: true, bg: 'verona' },
+            { x: isMobile ? 700 : 2100, year: 2015, text: "Wedding day surrounded by love.", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 800 : 2400, year: 2015, text: "Moved in together, but I took up all the spaces.", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 900 : 2700, year: 2015, text: "Honeymoon in Positano.", soulmateVisible: true, bg: 'postiano' },
+            { x: isMobile ? 1000 : 3000, year: 2016, text: "No matter how selfish I am, she's still here.", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 1100 : 3300, year: 2017, text: "Cherished moments together.", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 1200 : 3600, year: 2018, text: "How I wish I could turn back time.", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 1300 : 3900, year: 2019, text: "Still loving me no matter how selfish i am..", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 1400 : 4200, year: 2020, text: "A world changed, faces masked.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: isMobile ? 1500 : 4500, year: 2020, text: "Tough time in September...", soulmateVisible: false, bg: 'hk', maskedVisible: true },
+            { x: isMobile ? 1600 : 4800, year: 2020, text: "She came back, but I soon forgot about my promises...", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: isMobile ? 1700 : 5100, year: 2021, text: "Yet she is still trying to make us better..", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: isMobile ? 1800 : 5400, year: 2022, text: "New beginnings in a new home.", soulmateVisible: true, bg: 'hk', maskedVisible: true },
+            { x: isMobile ? 1900 : 5700, year: 2023, text: "First trip since the pandemic.", soulmateVisible: true, bg: 'tokyo' },
+            { x: isMobile ? 2000 : 6000, year: 2024, text: "Celebrated our big birthdays together.", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 2100 : 6300, year: 2025, text: "10 years wedding anniversary.", soulmateVisible: true, bg: 'hk' },
+            { x: isMobile ? 2300 : 6600, year: 2025, text: "Uncertainty looms..Marriage at crossroads..", soulmateVisible: false, bg: 'hk' },
+            { x: isMobile ? 2400 : 6900, year: 2025, text: "Uncertainty looms..Marriage at crossroads..", soulmateVisible: false, bg: 'hk' },
         ];
 
         const GamePhase = { Story: 0, Choice: 1, AfterChoiceYes: 2, AfterChoiceNo: 3, End: 4 };
@@ -309,7 +310,7 @@
         const scaledCharacterHeight = 32 * characterScale;
         const paddingBottom = scaledValue(40) || 40;
 
-        const scrollSpeed = 15;
+        const scrollSpeed = isMobile ? 15 : 9;
         const boyScreenX = scaledValue(20);
         const xGap = scaledValue(8);
         const soulmateScreenX = boyScreenX + scaledCharacterWidth + xGap;
