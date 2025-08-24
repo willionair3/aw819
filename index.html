@@ -73,23 +73,30 @@
             user-select: none;
         }
 
-        #autoScrollBtn {
-            padding: 10px 15px;
-            font-size: 16px;
-            min-width: 60px;
-            min-height: 40px;
-            border-radius: 8px;
-            /* Other button styling */
+        .auto-scroll-button {
+            padding: 16px 24px;
+            /* larger padding */
+            font-size: 20px;
+            /* bigger text */
+            min-width: 100px;
+            /* wider button */
+            min-height: 48px;
+            /* tall enough */
+            border-radius: 12px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        /* Larger button size for small mobile screens */
-        @media (max-width: 480px) {
-            #autoScrollBtn {
-                padding: 14px 20px;
-                font-size: 20px;
-                min-width: 90px;
-                min-height: 50px;
-                border-radius: 10px;
+        /* Optional: further increase for very small screens */
+        @media (max-width: 360px) {
+            .auto-scroll-button {
+                padding: 20px 28px;
+                font-size: 22px;
+                min-width: 120px;
+                min-height: 54px;
             }
         }
     </style>
@@ -119,7 +126,8 @@
         <button id="startButton">Start</button>
     </div>
 
-    <button id="autoScrollBtn" class="autoScrollBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
+    <button id="autoScrollBtn" class="auto-scroll-button"
+        style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
         Start Auto-Scroll
     </button>
 
