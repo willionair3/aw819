@@ -51,7 +51,7 @@
                 }
             };
 
-        })(window, document, 'script', 'https://download.gameanalytics.com/js/GameAnalytics.latest.min.js');
+        })(window, document, 'script', 'https://download.gameanalytics.com/js/GameAnalytics-2.1.2.min.js');
     </script>
 
 
@@ -177,7 +177,7 @@
             { backgroundColor: '#add8e6', text: "Osaka: Resilience remains.", bgImageSrc: 'pixel_osaka.png' },
             { backgroundColor: '#add8e6', text: "New York: City that never sleeps.", bgImageSrc: 'pixel_newyork.png' },
             { backgroundColor: '#add8e6', text: "Hong Kong: Home forever.", bgImageSrc: 'pixel_hk.png' },
-            { backgroundColor: '#add8e6', text: "Earth: Infinite adventures around the globe.", bgImageSrc: 'pixel_earth.png' }
+            { backgroundColor: '#add8e6', text: "Infinite adventures around the globe.", bgImageSrc: 'pixel_earth.png' }
         ];
 
         const storyMilestones = [
@@ -415,12 +415,11 @@
             return -(bgImg.width * neededRepeats - canvasWidth);
         }
 
-
         function trackUserChoice(choice) {
             console.log("Tracking choice:", choice);
             if (window.GameAnalytics) {
                 try {
-                    GameAnalytics("addDesignEvent", "choice." + choice);
+                    gameanalytics.GameAnalytics("addDesignEvent", "choice." + choice);
                     console.log("Event sent for choice", choice);
                 } catch (e) {
                     console.error("GameAnalytics event error:", e);
@@ -489,7 +488,6 @@
             ctx.shadowBlur = 0;
         }
 
-
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -520,10 +518,16 @@
                     }
                 }
 
+                updateAnimation();
+
                 // Display current afterChoiceYes text based on scroll position
                 const currentIndex = Math.floor(-afterChoiceWorldOffsetX / afterChoiceFrameWidth);
                 const clampedIndex = Math.min(Math.max(currentIndex, 0), afterChoiceYesFrames.length - 1);
-                ctx.fillStyle = '#ffffff';
+                if (clampedIndex === afterChoiceYesFrames.length - 1) {
+                    ctx.fillStyle = '#C1E1C1';
+                } else {
+                    ctx.fillStyle = '#ffffff';
+                }
                 ctx.font = `${Math.floor(canvasHeight * 0.035)}px monospace`;
                 ctx.textAlign = 'center';
                 ctx.fillText(afterChoiceYesFrames[clampedIndex].text, canvas.width / 2, 70);
