@@ -72,6 +72,26 @@
             font-weight: bold;
             user-select: none;
         }
+
+        #autoScrollBtn {
+            padding: 10px 15px;
+            font-size: 16px;
+            min-width: 60px;
+            min-height: 40px;
+            border-radius: 8px;
+            /* Other button styling */
+        }
+
+        /* Larger button size for small mobile screens */
+        @media (max-width: 480px) {
+            #autoScrollBtn {
+                padding: 14px 20px;
+                font-size: 20px;
+                min-width: 90px;
+                min-height: 50px;
+                border-radius: 10px;
+            }
+        }
     </style>
 </head>
 
@@ -99,7 +119,7 @@
         <button id="startButton">Start</button>
     </div>
 
-    <button id="autoScrollBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 100; padding: 10px 15px;">
+    <button id="autoScrollBtn" class="autoScrollBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
         Start Auto-Scroll
     </button>
 
