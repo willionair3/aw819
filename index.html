@@ -95,9 +95,9 @@
         }
 
         // Determine button sizes
-        const buttonWidth = scaledUIButtonValue(100);
-        const buttonHeight = scaledUIButtonValue(50);
-        const buttonGap = scaledUIButtonValue(20);
+        const buttonWidth = scaledUIButtonValue(70);
+        const buttonHeight = scaledUIButtonValue(35);
+        const buttonGap = scaledUIButtonValue(15);
 
         const padding = scaledUIButtonValue(10); // 10 base pixels scaled
 
@@ -114,15 +114,20 @@
 
         // Y position relative to bottom of canvas
         const buttonsY = canvasHeight - buttonHeight - scaledUIButtonValue(20);
-        
+
         const totalButtonWidth = buttonWidth * 2 + buttonGap;
         const availableWidth = canvasWidth - scaledUIButtonValue(20); // Left + right padding total
+
+        const charSpacing = scaledWidth * 0.75; // 75% width to overlap or get closer
+
+        const firstCharX = 100; // starting x position
+        const secondCharX = firstCharX + charSpacing;
 
         if (totalButtonWidth > availableWidth) {
             // reduce buttonWidth, or buttonGap dynamically here
             buttonWidth = (availableWidth - buttonGap) / 2;
         }
-        
+
         // === Add these variables for choice screen fade and typing effect ===
         let fadeAlpha = 0;
         const fadeIncrement = 0.02;
@@ -211,10 +216,18 @@
         // New scroll offset for afterChoiceYes frames
         let afterChoiceWorldOffsetX = 0;
 
+        const characterScale = 0.5; // Scale down to half size (16x16)
+
+        // Calculate scaled width and height
+        const scaledCharacterWidth = 32 * characterScale;
+        const scaledCharacterHeight = 32 * characterScale;
+        const paddingBottom = scaledValue(40) || 40;
+
         const scrollSpeed = 9;
-        const boyScreenX = canvasWidth / 4;
-        const soulmateScreenX = boyScreenX + scaledWidth + scaledValue(20);
-        const charScreenY = canvasHeight - scaledHeight - scaledValue(20);
+        const boyScreenX = scaledValue(20);
+        const xGap = scaledValue(8);
+        const soulmateScreenX = boyScreenX + scaledCharacterWidth + xGap;
+        const charScreenY = canvasHeight - scaledCharacterHeight - paddingBottom;
 
         let animationFrame = 0;
         let animationTimer = 0;
@@ -390,7 +403,7 @@
             if (!imgArray.length) return;
             const validFrame = frame % imgArray.length;
             const img = imgArray[validFrame];
-            if (img && img.complete) ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+            if (img && img.complete) ctx.drawImage(img, x, y, scaledWidth / 2, scaledHeight / 2);
         }
 
         // Scroll limit calculation for story milestones
@@ -440,18 +453,42 @@
         }
 
         // Draw button helper
-        function drawButton(x, y, w, h, fill, textColor, text) {
-            ctx.fillStyle = fill;
-            ctx.fillRect(x, y, w, h);
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, w, h);
+        function drawButton(x, y, width, height, bgColor, textColor, text) {
+            // Draw button background with rounded corners
+            const radius = height / 4;
+            ctx.fillStyle = bgColor;
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Artistic shadow for button style
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.shadowBlur = 4;
+
+            // Draw button text smaller with custom font
+            const fontSize = Math.floor(height * 0.5);  // half of button height
+            ctx.font = `${fontSize}px monospace`;
             ctx.fillStyle = textColor;
-            ctx.font = `${scaledUIButtonValue(28)}px monospace`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(text, x + w / 2, y + h / 2);
+
+            ctx.fillText(text, x + width / 2, y + height / 2);
+
+            // Reset shadow for other drawings
+            ctx.shadowBlur = 0;
         }
+
 
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -492,9 +529,13 @@
                 ctx.fillText(afterChoiceYesFrames[clampedIndex].text, canvas.width / 2, 70);
 
                 // Draw boy and soulmate walking animation
-                drawCharacter(boyWalkImgs, boyScreenX, charScreenY, animationFrame);
-                drawCharacter(soulmateWalkImgs, soulmateScreenX, charScreenY, animationFrame);
-
+                if (isWalking) {
+                    drawCharacter(boyWalkImgs, boyScreenX, charScreenY, animationFrame);
+                    drawCharacter(soulmateWalkImgs, soulmateScreenX, charScreenY, animationFrame);
+                } else {
+                    drawCharacter(boyIdleImgs, boyScreenX, charScreenY, animationFrame);
+                    drawCharacter(soulmateIdleImgs, soulmateScreenX, charScreenY, animationFrame);
+                }
             } else {
                 // Draw story background repeatedly
                 const bgImg = currentBgImage();
@@ -517,8 +558,11 @@
                 ctx.fillStyle = '#ffffff';  // white color
                 ctx.font = `${Math.floor(canvasHeight * 0.035)}px monospace`;  // smaller font size
                 ctx.shadowBlur = 10;
-                ctx.fillText(currentStoryText(), 20, 70);
                 ctx.shadowBlur = 0;
+
+                const maxTextWidth = canvasWidth - scaledValue(120); // leave some margin for year or edges
+                const lineHeight = Math.floor(canvasHeight * 0.04); // example line height scaled
+                wrapText(ctx, currentStoryText(), scaledValue(20), scaledValue(20), maxTextWidth, lineHeight);
 
                 const masked = currentSoulmateMaskedVisible();
                 const soulmateVisible = currentSoulmateVisible();
@@ -566,8 +610,8 @@
                         }
                     }
 
-                    drawButton(yesButtonX, buttonsY, buttonWidth, buttonHeight, '#39ff14', '#000', 'YES');
-                    drawButton(noButtonX, buttonsY, buttonWidth, buttonHeight, '#f33914', '#000', 'NO');
+                    drawButton(yesButtonX, buttonsY, buttonWidth, buttonHeight, '#C1E1C1', '#fff', 'Yes');
+                    drawButton(noButtonX, buttonsY, buttonWidth, buttonHeight, '#FF6961', '#fff', 'No..');
                 }
                 else if (gamePhase === GamePhase.AfterChoiceNo) {
                     ctx.fillStyle = 'rgba(0,0,0,0.6)';
