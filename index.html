@@ -99,6 +99,10 @@
         <button id="startButton">Start</button>
     </div>
 
+    <button id="autoScrollBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 100; padding: 10px 15px;">
+        Start Auto-Scroll
+    </button>
+
     <!-- GameAnalytics SDK -->
     <script>
         (function (w, d, s, u) {
@@ -133,6 +137,9 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+
+        let autoScrolling = false;
+        const autoScrollSpeed = 2; // Pixels to scroll per game loop frame (adjust as needed)
 
         // Frame dimensions and scale
         const frameWidth = 40;
@@ -471,7 +478,7 @@
                 return AnimationState.AFTER_CHOICE_YES;
             }
 
-            if (movingLeft || movingRight) {
+            if (movingLeft || movingRight || autoScrolling) {
                 if (isMasked && !soulmateVisibleFlag) return AnimationState.MASKED_CRYING;
                 if (isMasked) return AnimationState.MASKED;
                 if (!soulmateVisibleFlag) return AnimationState.CRYING;
@@ -486,7 +493,7 @@
 
         function updateAnimation() {
             animationTimer++;
-            const animationRate = movingLeft || movingRight ? 6 : 12;
+            const animationRate = (movingLeft || movingRight || autoScrolling) ? 6 : 12;
             if (animationTimer >= animationRate) {
                 animationTimer = 0;
 
@@ -624,13 +631,25 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Handle walking state
-            const isWalking = movingLeft || movingRight;
+            const isWalking = movingLeft || movingRight || autoScrolling;
 
             if (gamePhase === GamePhase.Story) {
-                if (movingLeft) worldOffsetX = Math.min(worldOffsetX + scrollSpeed, 0);
-                if (movingRight) worldOffsetX = Math.max(worldOffsetX - scrollSpeed, getMaxScroll());
-            }
+                if (autoScrolling) {
+                    worldOffsetX -= autoScrollSpeed;
 
+                    // Get max scroll value based on milestone positions and scale
+                    const maxScroll = getMaxScroll();
+
+                    // Loop auto-scroll if reached the end
+                    if (worldOffsetX < maxScroll) {
+                        worldOffsetX = 0;
+                    }
+                } else {
+                    if (movingLeft) worldOffsetX = Math.min(worldOffsetX + scrollSpeed, 0);
+                    if (movingRight) worldOffsetX = Math.max(worldOffsetX - scrollSpeed, getMaxScroll());
+                }
+                updateAnimation();
+            }
             if (gamePhase === GamePhase.AfterChoiceYes) {
                 const afterChoiceFrameWidth = canvas.width;
                 const afterChoiceTotalWidth = afterChoiceYesFrames.length * afterChoiceFrameWidth;
@@ -698,8 +717,9 @@
 
                 const rightMarginForYear = scaledValue(100);
                 const maxStoryTextWidth = canvasWidth - 20 - rightMarginForYear;
+                const fontSize = isMobile ? Math.floor(canvasHeight * 0.045) : Math.floor(canvasHeight * 0.035);
                 ctx.fillStyle = '#ffffff';  // white color
-                ctx.font = `${Math.floor(canvasHeight * 0.035)}px monospace`;  // smaller font size
+                ctx.font = `${fontSize}px monospace`;  // smaller font size
                 ctx.shadowBlur = 10;
                 ctx.shadowBlur = 0;
 
@@ -711,6 +731,8 @@
                 const soulmateVisible = currentSoulmateVisible();
 
                 if (gamePhase === GamePhase.Choice) {
+                    autoScrolling = false;
+                    autoScrollBtn.style.display = 'none';
                     if (choiceBg.complete) {
                         ctx.drawImage(choiceBg, 0, 0, canvas.width, canvas.height);
                     } else {
@@ -935,6 +957,12 @@
         });
 
         requestAnimationFrame(gameLoop);
+
+        const autoScrollBtn = document.getElementById('autoScrollBtn');
+        autoScrollBtn.addEventListener('click', () => {
+            autoScrolling = !autoScrolling;
+            autoScrollBtn.textContent = autoScrolling ? 'Stop Auto-Scroll' : 'Start Auto-Scroll';
+        });
 
         const bgMusic = new Audio('angel.mp3');
         bgMusic.loop = true;
