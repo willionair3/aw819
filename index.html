@@ -168,7 +168,7 @@
         const isMobile = window.innerWidth <= 600;
 
         let autoScrolling = false;
-        const autoScrollSpeed = isMobile ? 72 : 6; // Pixels to scroll per game loop frame (adjust as needed)
+        const autoScrollSpeed = isMobile ? 120 : 3; // Pixels to scroll per game loop frame (adjust as needed)
 
         // Frame dimensions and scale
         const frameWidth = 40;
@@ -744,7 +744,7 @@
 
                 const rightMarginForYear = scaledValue(100);
                 const maxStoryTextWidth = canvasWidth - 20 - rightMarginForYear;
-                const fontSize = isMobile ? Math.floor(canvasHeight * 0.015) : Math.floor(canvasHeight * 0.035);
+                const fontSize = isMobile ? Math.floor(canvasHeight * 0.001) : Math.floor(canvasHeight * 0.035);
                 ctx.fillStyle = '#ffffff';  // white color
                 ctx.font = `${fontSize}px monospace`;  // smaller font size
                 ctx.shadowBlur = 10;
