@@ -209,7 +209,7 @@
         let choiceSentenceIndex = 0;
         let charIndex = 0;
         let charTimer = 0;
-        const charDelay = 22;
+        const charDelay = 12;
         const sentencePause = 500;
         let pauseJustStarted = false;
         let pauseTimer = 0;
@@ -309,7 +309,7 @@
         const scaledCharacterHeight = 32 * characterScale;
         const paddingBottom = scaledValue(40) || 40;
 
-        const scrollSpeed = 9;
+        const scrollSpeed = 10;
         const boyScreenX = scaledValue(20);
         const xGap = scaledValue(8);
         const soulmateScreenX = boyScreenX + scaledCharacterWidth + xGap;
@@ -631,12 +631,18 @@
             }
 
             if (gamePhase === GamePhase.AfterChoiceYes) {
-                // Scroll after choice YES frames
                 const afterChoiceFrameWidth = canvas.width;
                 const afterChoiceTotalWidth = afterChoiceYesFrames.length * afterChoiceFrameWidth;
 
-                if (movingLeft) afterChoiceWorldOffsetX = Math.min(afterChoiceWorldOffsetX + scrollSpeed, 0);
-                if (movingRight) afterChoiceWorldOffsetX = Math.max(afterChoiceWorldOffsetX - scrollSpeed, -(afterChoiceTotalWidth - canvas.width));
+                // Use slower scroll speed here:
+                const scrollSpeed = 5; // Adjust to smaller values to slow down
+
+                if (movingLeft) {
+                    afterChoiceWorldOffsetX = Math.min(afterChoiceWorldOffsetX + scrollSpeed, 0);
+                }
+                if (movingRight) {
+                    afterChoiceWorldOffsetX = Math.max(afterChoiceWorldOffsetX - scrollSpeed, -(afterChoiceTotalWidth - canvas.width));
+                }
 
                 // Draw backgrounds tiled horizontally
                 for (let i = 0; i < afterChoiceYesFrames.length; i++) {
@@ -671,7 +677,8 @@
                     drawCharacter(boyIdleImgs, boyScreenX, charScreenY, animationFrame);
                     drawCharacter(soulmateIdleImgs, soulmateScreenX, charScreenY, animationFrame);
                 }
-            } else {
+            }
+            else {
                 // Draw story background repeatedly
                 const bgImg = currentBgImage();
                 if (bgImg.complete) {
