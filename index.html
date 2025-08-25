@@ -252,7 +252,7 @@
 
         const choiceSentences = [
             "What makes you different this time?",
-            "Because I don't know starting from exactly when",
+            "Because back then I did not think of throwing away everything, now I do.",
             "You have literally become a part of my heart..",
             "People always say home is where your heart belongs",
             "Now I finally realized you are my home.",
@@ -606,28 +606,28 @@
         }
 
         function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-    const words = text.split(' ');
-    let line = '';
-    let lines = [];
+            const words = text.split(' ');
+            let line = '';
+            let lines = [];
 
-    for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
-        const metrics = ctx.measureText(testLine);
-        const testWidth = metrics.width;
+            for (let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                const testWidth = metrics.width;
 
-        if (testWidth > maxWidth && n > 0) {
+                if (testWidth > maxWidth && n > 0) {
+                    lines.push(line);
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
             lines.push(line);
-            line = words[n] + ' ';
-        } else {
-            line = testLine;
-        }
-    }
-    lines.push(line);
 
-    for (let i = 0; i < lines.length; i++) {
-        ctx.fillText(lines[i].trim(), x, y + i * lineHeight);
-    }
-}
+            for (let i = 0; i < lines.length; i++) {
+                ctx.fillText(lines[i].trim(), x, y + i * lineHeight);
+            }
+        }
 
         function drawEmojiButton(x, y, size, emoji) {
             ctx.font = `${size}px monospace`;
@@ -801,7 +801,7 @@
                         : choiceSentences[choiceSentenceIndex].substring(0, charIndex);
                     const maxTextWidth = canvas.width * 0.9;
                     const startY = 10;
-                    
+
                     const fontSize = Math.floor(canvasHeight * 0.035);
                     const lineHeight = Math.floor(fontSize * 1.2); // line height slightly larger than font size
 
