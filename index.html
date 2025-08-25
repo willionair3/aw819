@@ -259,8 +259,9 @@
             "The one calming factor amongst all chaos.",
             "No matter how bad it is, as soon as I hear from you,",
             "Everything just clears up.",
-            "But I was blinded, and didn't cherish you.",
-            "now everything is too late.....",
+            "But I was blinded, I let my selfishness get the better of me.",
+            "And didn't realize you have always been the one I fell madly in love with.",
+            "Now everything is too late...but I will wait.",
             "How can you wait for someone who might never come back?",
             "Because you are where my heart belongs.",
             "而我...只想把餘生的溫柔都給你",
@@ -605,26 +606,28 @@
         }
 
         function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-            const words = text.split(' ');
-            let line = '';
-            let lines = [];
-            for (let n = 0; n < words.length; n++) {
-                const testLine = line + words[n] + ' ';
-                const metrics = ctx.measureText(testLine);
-                const testWidth = metrics.width;
-                if (testWidth > maxWidth && n > 0) {
-                    lines.push(line);
-                    line = words[n] + ' ';
-                } else {
-                    line = testLine;
-                }
-            }
-            lines.push(line);
+    const words = text.split(' ');
+    let line = '';
+    let lines = [];
 
-            for (let i = 0; i < lines.length; i++) {
-                ctx.fillText(lines[i], x, y + i * lineHeight);
-            }
+    for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+
+        if (testWidth > maxWidth && n > 0) {
+            lines.push(line);
+            line = words[n] + ' ';
+        } else {
+            line = testLine;
         }
+    }
+    lines.push(line);
+
+    for (let i = 0; i < lines.length; i++) {
+        ctx.fillText(lines[i].trim(), x, y + i * lineHeight);
+    }
+}
 
         function drawEmojiButton(x, y, size, emoji) {
             ctx.font = `${size}px monospace`;
@@ -789,18 +792,23 @@
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
 
-                    ctx.font = `${Math.floor(canvasHeight * 0.035)}px monospace`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'top';
-                    ctx.fillStyle = '#ffffff';
-
                     // Display visible text either partial or fully typed during pause
                     const fullyTyped = charIndex >= choiceSentences[choiceSentenceIndex].length;
                     const visibleText = fullyTyped
                         ? choiceSentences[choiceSentenceIndex]
                         : choiceSentences[choiceSentenceIndex].substring(0, charIndex);
                     const maxTextWidth = canvas.width * 0.9;
-                    const lineHeight = 26;
+                    const startY = 10;
+                    
+                    const fontSize = Math.floor(canvasHeight * 0.035);
+                    const lineHeight = Math.floor(fontSize * 1.2); // line height slightly larger than font size
+
+                    ctx.font = `${fontSize}px monospace`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillStyle = '#ffffff';
+
+                    const maxTextWidth = canvas.width * 0.9;
                     const startY = 10;
 
                     wrapText(ctx, visibleText, canvas.width / 2, startY, maxTextWidth, lineHeight);
