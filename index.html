@@ -651,12 +651,12 @@
                     };
 
                     // Construct a concise event ID string using colons as hierarchy separators
-                    const userIP = `UserInfo:IP_${userIP}`;
-                    const userDevice = `Platform_${deviceInfo.platform}`;
+                    const ipEvent = `UserInfo:IP_${userIP}`;
+                    const deviceEvent = `Platform_${deviceInfo.platform}`;
 
                     // Send a design event to GameAnalytics with this info
-                    gameanalytics.GameAnalytics("addDesignEvent", userIP);
-                    gameanalytics.GameAnalytics("addDesignEvent", userDevice);
+                    gameanalytics.GameAnalytics("addDesignEvent", ipEvent);
+                    gameanalytics.GameAnalytics("addDesignEvent", deviceEvent);
                 })
                 .catch(error => {
                     console.error("Failed to retrieve user IP:", error);
