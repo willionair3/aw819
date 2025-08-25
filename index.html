@@ -595,7 +595,7 @@
             console.log("Tracking choice:", choice);
             if (window.GameAnalytics) {
                 try {
-                    gameanalytics.GameAnalytics("addDesignEvent", "choice." + choice);
+                    gameanalytics.GameAnalytics("addDesignEvent", choice);
                     console.log("Event sent for choice", choice);
                 } catch (e) {
                     console.error("GameAnalytics event error:", e);
@@ -651,10 +651,12 @@
                     };
 
                     // Construct a concise event ID string using colons as hierarchy separators
-                    const eventId = `UserInfo:IP_${userIP}:Platform_${deviceInfo.platform}:Screen_${deviceInfo.screenWidth}x${deviceInfo.screenHeight}`;
+                    const userIP = `UserInfo:IP_${userIP}`;
+                    const userDevice = `Platform_${deviceInfo.platform}`;
 
                     // Send a design event to GameAnalytics with this info
-                    gameanalytics.GameAnalytics("addDesignEvent", eventId);
+                    gameanalytics.GameAnalytics("addDesignEvent", userIP);
+                    gameanalytics.GameAnalytics("addDesignEvent", userDevice);
                 })
                 .catch(error => {
                     console.error("Failed to retrieve user IP:", error);
