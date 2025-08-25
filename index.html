@@ -131,36 +131,15 @@
         Start Auto-Scroll
     </button>
 
-    <!-- GameAnalytics SDK -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-10E85G88X3"></script>
     <script>
-        (function (w, d, s, u) {
-            w['GameAnalytics'] = w['GameAnalytics'] || function () {
-                (w['GameAnalytics'].q = w['GameAnalytics'].q || []).push(arguments)
-            };
-            var ga = d.createElement(s), m = d.getElementsByTagName(s)[0];
-            ga.async = 1;
-            ga.src = u;
-            m.parentNode.insertBefore(ga, m);
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-            // Initialize after SDK loaded
-            ga.onload = function () {
-                GameAnalytics("setEnabledInfoLog", true);
-                GameAnalytics("initialize", "74d3259c304d64ec6ad15574eb975019", "d9212b3ec2f73ae0648888f637774c1b8b455bcf");
-                console.log("GameAnalytics initialized");
-            };
-
-            // Fallback if onload doesn't fire reliably
-            ga.onreadystatechange = function () {
-                if (this.readyState === 'complete') {
-                    GameAnalytics("setEnabledInfoLog", true);
-                    GameAnalytics("initialize", "74d3259c304d64ec6ad15574eb975019", "d9212b3ec2f73ae0648888f637774c1b8b455bcf");
-                    console.log("GameAnalytics initialized (onreadystatechange)");
-                }
-            };
-
-        })(window, document, 'script', 'https://download.gameanalytics.com/js/GameAnalytics-2.1.2.min.js');
+        gtag('config', 'G-10E85G88X3');
     </script>
-
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -301,6 +280,7 @@
             { backgroundColor: '#f0e68c', text: "India: A land of colors and wonders.", bgImageSrc: 'pixel_india.png' },
             { backgroundColor: '#f0e68c', text: "Mexico: The land of tacos.", bgImageSrc: 'pixel_mexico.png' },
             { backgroundColor: '#add8e6', text: "Norway: LIGHTS.", bgImageSrc: 'pixel_norway.png' },
+            { backgroundColor: '#add8e6', text: "Greece: Gods and Goddesses.", bgImageSrc: 'pixel_greece.png' },
             { backgroundColor: '#add8e6', text: "North Pole: Embracing new horizons.", bgImageSrc: 'pixel_northpole.png' },
             { backgroundColor: '#add8e6', text: "Berlin: Reminiscing moments.", bgImageSrc: 'pixel_berlin.png' },
             { backgroundColor: '#add8e6', text: "Taipei: Heartfelt memories.", bgImageSrc: 'pixel_taipei.png' },
@@ -591,18 +571,8 @@
             return -(bgImg.width * neededRepeats - canvasWidth);
         }
 
-        function trackUserChoice(choice) {
-            console.log("Tracking choice:", choice);
-            if (window.GameAnalytics) {
-                try {
-                    gameanalytics.GameAnalytics("addDesignEvent", choice);
-                    console.log("Event sent for choice", choice);
-                } catch (e) {
-                    console.error("GameAnalytics event error:", e);
-                }
-            } else {
-                console.warn("GameAnalytics not initialized yet");
-            }
+        function logEvent(eventName, eventParams) {
+            gtag('event', eventName, eventParams);
         }
 
         function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -641,7 +611,6 @@
             fetch("https://api.ipify.org?format=json")
                 .then(response => response.json())
                 .then(data => {
-                    const userIP = data.ip;
                     const deviceInfo = {
                         userAgent: navigator.userAgent,
                         platform: navigator.platform,
@@ -649,19 +618,18 @@
                         screenWidth: window.screen.width,
                         screenHeight: window.screen.height,
                     };
-
-                    // Construct a concise event ID string using colons as hierarchy separators
-                    const ipEvent = `UserInfo:IP_${userIP}`;
-                    const deviceEvent = `Platform_${deviceInfo.platform}`;
-
-                    // Send a design event to GameAnalytics with this info
-                    gameanalytics.GameAnalytics("addDesignEvent", ipEvent);
-                    gameanalytics.GameAnalytics("addDesignEvent", deviceEvent);
+                    logEvent('user_device_info', {
+                        deviceInfo: deviceInfo,
+                        ip: data.ip,
+                        screen_width: window.screen.width,
+                        screen_height: window.screen.height
+                    });
                 })
                 .catch(error => {
-                    console.error("Failed to retrieve user IP:", error);
                     // Optionally send an event without IP
-                    gameanalytics.GameAnalytics("addDesignEvent", "UserInfo:IP_unknown");
+                    logEvent('error', {
+                        msg: "Failed to retrieve user IP:", error
+                    });
                 });
         }
 
@@ -996,7 +964,9 @@
                     gamePhase = GamePhase.AfterChoiceYes;
                     afterChoiceWorldOffsetX = 0;
                     movingLeft = false;
-                    trackUserChoice(`player_choice:yes`);
+                    logEvent('playerChoice', {
+                        choice: True
+                    });
                     movingRight = false;
                     event.stopImmediatePropagation();
                 }
@@ -1006,7 +976,9 @@
                     clickY >= buttonsY &&
                     clickY <= buttonsY + buttonHeight) {
                     playerChoice = 'no';
-                    trackUserChoice(`player_choice:no`);
+                    logEvent('playerChoice', {
+                        choice: False
+                    });
                     gamePhase = GamePhase.AfterChoiceNo;
                     event.stopImmediatePropagation();
                 }
