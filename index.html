@@ -612,18 +612,13 @@
             fetch("https://api.ipify.org?format=json")
                 .then(response => response.json())
                 .then(data => {
-                    const deviceInfo = {
+                    logEvent('user_info', {
                         userAgent: navigator.userAgent,
                         platform: navigator.platform,
                         language: navigator.language,
                         screenWidth: window.screen.width,
                         screenHeight: window.screen.height,
-                    };
-                    logEvent('user_device_info', {
-                        deviceInfo: deviceInfo,
-                        ip: data.ip,
-                        screen_width: window.screen.width,
-                        screen_height: window.screen.height
+                        ip: data.ip
                     });
                 })
                 .catch(error => {
@@ -966,7 +961,7 @@
                     afterChoiceWorldOffsetX = 0;
                     movingLeft = false;
                     logEvent('playerChoice', {
-                        choice: True
+                        choice: 'yes'
                     });
                     movingRight = false;
                     event.stopImmediatePropagation();
@@ -978,7 +973,7 @@
                     clickY <= buttonsY + buttonHeight) {
                     playerChoice = 'no';
                     logEvent('playerChoice', {
-                        choice: False
+                        choice: 'no'
                     });
                     gamePhase = GamePhase.AfterChoiceNo;
                     event.stopImmediatePropagation();
