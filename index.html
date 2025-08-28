@@ -99,6 +99,32 @@
                 min-height: 54px;
             }
         }
+
+        .skip-button {
+            padding: 16px 24px;
+            font-size: 20px;
+            min-width: 100px;
+            min-height: 48px;
+            border-radius: 12px;
+            cursor: pointer;
+            background-color: white;
+            /* white background */
+            color: #007bff;
+            /* blue text */
+            border: 2px solid #007bff;
+            /* blue border for definition */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Optional: further increase for very small screens */
+        @media (max-width: 360px) {
+            .skip-button {
+                padding: 20px 28px;
+                font-size: 22px;
+                min-width: 120px;
+                min-height: 54px;
+            }
+        }
     </style>
 </head>
 
@@ -131,6 +157,11 @@
         Start Auto-Scroll
     </button>
 
+    <button id="skipToEndBtn" class="skip-button"
+        style="position: fixed; top: 20px; right: 20px; z-index: 100;">
+        Skip to End
+    </button>
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-10E85G88X3"></script>
     <script>
@@ -147,6 +178,7 @@
         const isMobile = window.innerWidth <= 600;
 
         let autoScrolling = false;
+        let skipToEnd = false;
         const autoScrollSpeed = isMobile ? 512 : 3; // Pixels to scroll per game loop frame (adjust as needed)
 
         // Frame dimensions and scale
@@ -773,7 +805,9 @@
 
                 if (gamePhase === GamePhase.Choice) {
                     autoScrolling = false;
+                    skipToEnd = false;
                     autoScrollBtn.style.display = 'none';
+                    skipToEndBtn.style.display = 'none';
                     if (choiceBg.complete) {
                         ctx.drawImage(choiceBg, 0, 0, canvas.width, canvas.height);
                     } else {
@@ -892,7 +926,7 @@
             }
 
             // Automatically switch to Choice phase at last milestone
-            if (getCurrentMilestone() === storyMilestones.length - 1 && gamePhase === GamePhase.Story) {
+            if (skipToEnd || (getCurrentMilestone() === storyMilestones.length - 1 && gamePhase === GamePhase.Story)) {
                 gamePhase = GamePhase.Choice;
             }
 
@@ -1010,6 +1044,11 @@
         autoScrollBtn.addEventListener('click', () => {
             autoScrolling = !autoScrolling;
             autoScrollBtn.textContent = autoScrolling ? 'Stop Auto-Scroll' : 'Start Auto-Scroll';
+        });
+
+        const skipToEndBtn = document.getElementById('skipToEndBtn');
+            skipToEndBtn.addEventListener('click', () => {
+            skipToEnd = !skipToEnd;
         });
 
         const bgMusic = new Audio('angel.mp3');
