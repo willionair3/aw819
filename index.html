@@ -260,75 +260,111 @@
         let pauseJustStarted = false;
         let pauseTimer = 0;
         //願你餘生所有的珍惜都不用靠失去來懂得
-        const choiceSentences = [
-            "We are over.",
-            "Okay I will wait.",
-            "Wait for what?",
-            "Wait for you.",
-            "Please don't wait.",
-            "I'll wait.",
-            "But I don't want you anymore.",
-            "I'll stay until you want me again.",
-            "What makes you different this time?",
-            "This time I don't wanna make promises.",
-            "Because this time I know exactly what to do, not promising you what I think you want me to do.",
-            "I'm not trying to go back to where we were, I'd see this as a new beginning, more like renewing our vows.",
-            "And losing you has finally made me the man I should have been.",
-            "I wish I could have given you all the love you deserved from me.",
-            "And I wish I could have always seen you as I see you now.",
-            "That's the difference, and time will tell how much I love you.",
-            "What if I don't come back?",
-            "Then I will be a broken heart that finally, finally loved you fully.",
-            "I don't expect you to promise me anything - not a timeframe, not even certainty.",
-            "I'll wait because I'd rather spend my life hoping for you than living without you.",
-            "And even if you never come back, I will still be glad I waited.",
-            "Because you have always been the one, and you will always be the one.",
-            "而我...只想把餘生的溫柔都給你..."
-            // "I don't know what did I do to deserve you",
-            // "And why did I have to hurt you like that",
-            // "People spend their whole lives wishing for someone like you",
-            // "I had you in the palm of my hand",
-            // "I could have spoiled you, I could have given you everything",
-            // "I could have, I should have",
-            // "But instead I chose to neglect you",
-            // "And I couldn't even see how much you were hurting",
-            // "I might deserve you before, but I sure don't deserve you now",
-            // "What makes you different this time?",
-            // "Back then I only wanted to \"satisfy\" you, so everything became a routine, and I got lazy over time",
-            // "I forgot about the person I fell in love with, moreover, I forgot about the person YOU fell in love with",
-            // "And losing you has finally made me the man I should have been",
-            // "I run from conversations, responsibilities, and issues",
-            // "When we should have dealt with them together, as a family, as one",
-            // //"改變和迎合是兩回事。改變是由衷地想要成為更好的人，迎合則是一味地奉承。",
-            // "This time, I want to rebuild our relationship, if you would allow me.",
-            // "And there are things... that I never told you about..but maybe easier in person",
-            // "..............",
-            // "Are you sure you really love me?",
-            // "That's a question I also asked myself, but now it is clearer than ever, that I do.",
-            // // "People always say home is where your heart belongs",
-            // // "Now I finally realized you are my home.",
-            // // "The one calming factor amongst all chaos.",
-            // // "No matter how bad it is, as soon as I hear from you, even just a simple \"hi\"",
-            // // "It would help me through the toughest times",
-            // "I was blinded, I let my selfishness get the better of me.",
-            // "And didn't realize you have always been the one I fell madly in love with.",
-            // "Now everything is too late...but I will wait.",
-            // "How can you wait for someone who might never come back?",
-            // "I doubt you would ever come back, but..I know where my heart belongs..",
-            // "總有一些失去",
-            // "成就了你餘生的相遇...",
-            // "and if that ever happens..I will still be here..",
-            // // "而我...",
-            // "What if I really don't come back?",
-            // "Then I will be a broken heart that finally, finally loved you fully.",
-            // "I don't expect you to promise me anything - not a timeframe, not even certainty.",
-            // "I'll wait because I'd rather spend my life hoping for you than living without you.",
-            // "And even if you never come back, I will still be glad I waited.",
-            // "Because you have always been the one, and you will always be the one.",
-            // "And if there really are parallel universes, I know I will be loving you in every single one of them.",
-            // "Because you are the reason I am, you're all my reasons, I just didn't even know myself.. and now...",
-            // "我只想把餘生的溫柔都給你...",
-        ];
+        // const choiceSentences = [
+        //     "We are over.",
+        //     "Okay I will wait.",
+        //     "Wait for what?",
+        //     "Wait for you.",
+        //     "Please don't wait.",
+        //     "I'll wait.",
+        //     "But I don't want you anymore.",
+        //     "I'll stay until you want me again.",
+        //     "What makes you different this time?",
+        //     "This time I don't wanna make promises.",
+        //     "Because this time I know exactly what to do, not promising you what I think you want me to do.",
+        //     "I'm not trying to go back to where we were, I'd see this as a new beginning, more like renewing our vows.",
+        //     "And losing you has finally made me the man I should have been.",
+        //     "I wish I could have given you all the love you deserved from me.",
+        //     "And I wish I could have always seen you as I see you now.",
+        //     "That's the difference.",
+        //     ".............",
+        //     "I understand that to really love you is to let you go, if that makes you happier",
+        //     "But just know that, if you ever want to come back, I will be here",
+        //     "My heart will always be reserved for you, and only you, and you know how stubborn I can be :)",
+        //     "And time will tell how much I love you",
+        //     "What if I don't come back?",
+        //     "Then I will be a broken heart that finally, finally loved you fully.",
+        //     "I don't expect you to promise me anything - not a timeframe, not even certainty.",
+        //     "I'll wait because I'd rather spend my life hoping for you than living without you.",
+        //     "And even if you never come back, I will still be glad I waited.",
+        //     "Because you have always been the one, and you will always be the one.",
+        //     "而我...只想把餘生的溫柔都給你...",
+        //     // "I don't know what did I do to deserve you",
+        //     // "And why did I have to hurt you like that",
+        //     // "People spend their whole lives wishing for someone like you",
+        //     // "I had you in the palm of my hand",
+        //     // "I could have spoiled you, I could have given you everything",
+        //     // "I could have, I should have",
+        //     // "But instead I chose to neglect you",
+        //     // "And I couldn't even see how much you were hurting",
+        //     // "I might deserve you before, but I sure don't deserve you now",
+        //     // "What makes you different this time?",
+        //     // "Back then I only wanted to \"satisfy\" you, so everything became a routine, and I got lazy over time",
+        //     // "I forgot about the person I fell in love with, moreover, I forgot about the person YOU fell in love with",
+        //     // "And losing you has finally made me the man I should have been",
+        //     // "I run from conversations, responsibilities, and issues",
+        //     // "When we should have dealt with them together, as a family, as one",
+        //     // //"改變和迎合是兩回事。改變是由衷地想要成為更好的人，迎合則是一味地奉承。",
+        //     // "This time, I want to rebuild our relationship, if you would allow me.",
+        //     // "And there are things... that I never told you about..but maybe easier in person",
+        //     // "..............",
+        //     // "Are you sure you really love me?",
+        //     // "That's a question I also asked myself, but now it is clearer than ever, that I do.",
+        //     // // "People always say home is where your heart belongs",
+        //     // // "Now I finally realized you are my home.",
+        //     // // "The one calming factor amongst all chaos.",
+        //     // // "No matter how bad it is, as soon as I hear from you, even just a simple \"hi\"",
+        //     // // "It would help me through the toughest times",
+        //     // "I was blinded, I let my selfishness get the better of me.",
+        //     // "And didn't realize you have always been the one I fell madly in love with.",
+        //     // "Now everything is too late...but I will wait.",
+        //     // "How can you wait for someone who might never come back?",
+        //     // "I doubt you would ever come back, but..I know where my heart belongs..",
+        //     // "總有一些失去",
+        //     // "成就了你餘生的相遇...",
+        //     // "and if that ever happens..I will still be here..",
+        //     // // "而我...",
+        //     // "What if I really don't come back?",
+        //     // "Then I will be a broken heart that finally, finally loved you fully.",
+        //     // "I don't expect you to promise me anything - not a timeframe, not even certainty.",
+        //     // "I'll wait because I'd rather spend my life hoping for you than living without you.",
+        //     // "And even if you never come back, I will still be glad I waited.",
+        //     // "Because you have always been the one, and you will always be the one.",
+        //     // "And if there really are parallel universes, I know I will be loving you in every single one of them.",
+        //     // "Because you are the reason I am, you're all my reasons, I just didn't even know myself.. and now...",
+        //     // "我只想把餘生的溫柔都給你...",
+        // ];
+
+            const choiceDialogue = [
+                { speaker: 'A', text: "We are over." },
+                { speaker: 'B', text: "Okay I will wait." },
+                { speaker: 'A', text: "Wait for what?" },
+                { speaker: 'B', text: "Wait for you." },
+                { speaker: 'A', text: "Please don't wait." },
+                { speaker: 'B', text: "I'll wait." },
+                { speaker: 'A', text: "But I don't want you anymore." },
+                { speaker: 'B', text: "I'll stay until you want me again." },
+                { speaker: 'A', text: "What makes you different this time?" },
+                { speaker: 'B', text: "This time I don't wanna make promises." },
+                { speaker: 'B', text: "Because this time I know exactly what to do, not promising you what I think you want me to do." },
+                { speaker: 'B', text: "I'm not trying to go back to where we were, I'd see this as a new beginning, more like renewing our vows." },
+                { speaker: 'B', text: "And losing you has finally made me the man I should have been." },
+                { speaker: 'B', text: "I wish I could have given you all the love you deserved from me." },
+                { speaker: 'B', text: "And I wish I could have always seen you as I see you now." },
+                { speaker: 'B', text: "That's the difference." },
+                { speaker: 'A', text: "......................" },
+                { speaker: 'B', text: "I understand that to really love you is to let you go, if that makes you happier." },
+                { speaker: 'B', text: "But just know that, if you ever want to come back, I will be here." },
+                { speaker: 'B', text: "My heart will always be reserved for you, and only you." },
+                { speaker: 'B', text: "And time will tell how much I love you." },
+                { speaker: 'A', text: "What if I don't come back?" },
+                { speaker: 'B', text: "Then I will be a broken heart that finally, finally loved you fully." },
+                { speaker: 'B', text: "I don't expect you to promise me anything - not a timeframe, not even certainty." },
+                { speaker: 'B', text: "I'll wait because I'd rather spend my life hoping for you than living without you." },
+                { speaker: 'B', text: "And even if you never come back, I will still be glad I waited." },
+                { speaker: 'B', text: "Because you have always been the one, and you will always be the one." },
+                { speaker: 'B', text: "而我...只想把餘生的溫柔都給你..." }
+            ];
 
         const choiceBg = new Image();
         choiceBg.src = 'background_hk.png';  // Your choice screen background image
@@ -830,6 +866,7 @@
                     skipToEnd = false;
                     autoScrollBtn.style.display = 'none';
                     skipToEndBtn.style.display = 'none';
+
                     if (choiceBg.complete) {
                         ctx.drawImage(choiceBg, 0, 0, canvas.width, canvas.height);
                     } else {
@@ -837,48 +874,51 @@
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
 
-                    // Display visible text either partial or fully typed during pause
-                    const fullyTyped = charIndex >= choiceSentences[choiceSentenceIndex].length;
+                    const currentDialogue = choiceDialogue[choiceSentenceIndex];
+                    const fullyTyped = charIndex >= currentDialogue.text.length;
                     const visibleText = fullyTyped
-                        ? choiceSentences[choiceSentenceIndex]
-                        : choiceSentences[choiceSentenceIndex].substring(0, charIndex);
+                        ? currentDialogue.text
+                        : currentDialogue.text.substring(0, charIndex);
                     const maxTextWidth = canvas.width * 0.9;
                     const startY = 10;
 
                     const fontSize = Math.floor(canvasHeight * 0.035);
-                    const lineHeight = Math.floor(fontSize * 1.2); // line height slightly larger than font size
+                    const lineHeight = Math.floor(fontSize * 1.2);
 
                     ctx.font = `${fontSize}px monospace`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'top';
-                    ctx.fillStyle = '#ffffff';
+
+                    // Colors: light pink for A, light blue for B
+                    if (currentDialogue.speaker === 'A') {
+                        ctx.fillStyle = '#8585c7'; 
+                    } else {
+                        ctx.fillStyle = '#184c78'; 
+                    }
 
                     wrapText(ctx, visibleText, canvas.width / 2, startY, maxTextWidth, lineHeight);
 
                     drawCenterText();
+
                     if (!fullyTyped) {
-                        // Typing characters
                         if (charTimer >= charDelay) {
                             charIndex++;
                             charTimer = 0;
                         } else {
                             charTimer++;
                         }
-                        pauseJustStarted = false;  // reset on typing
+                        pauseJustStarted = false;
                     } else {
-                        // Sentence fully typed, handle pause
                         if (!pauseJustStarted) {
-                            // Initialize pause timer once when sentence first completes
                             pauseTimer = sentencePause;
                             pauseJustStarted = true;
                         }
                         if (pauseTimer > 0) {
                             pauseTimer--;
                         } else {
-                            // Pause completed, advance to next sentence
-                            choiceSentenceIndex = (choiceSentenceIndex + 1) % choiceSentences.length;
+                            choiceSentenceIndex = (choiceSentenceIndex + 1) % choiceDialogue.length;
                             charIndex = 0;
-                            pauseJustStarted = false; // reset for next sentence typing
+                            pauseJustStarted = false;
                         }
                     }
 
